@@ -162,10 +162,13 @@ async function sendTimbro(type){
 document.getElementById("btnIn").onclick = () => sendTimbro("IN");
 document.getElementById("btnOut").onclick = () => sendTimbro("OUT");
 
-// Se QR preimposta mode, auto-timbratura (conferma light) + stesso colore
+// ✅ QR dedicati: stesso testo dei bottoni normali
 if (presetMode === "IN" || presetMode === "OUT") {
-  const cls = presetMode === "IN" ? "btn-in" : "btn-out";
-  buttonsEl.innerHTML = `<button id="autoBtn" class="${cls} btn-auto">Conferma ${presetMode}</button>`;
+  const isIn = presetMode === "IN";
+  const cls = isIn ? "btn-in" : "btn-out";
+  const label = isIn ? "ENTRATA" : "USCITA";
+
+  buttonsEl.innerHTML = `<button id="autoBtn" class="${cls} btn-auto">${label}</button>`;
   document.getElementById("autoBtn").onclick = () => sendTimbro(presetMode);
 }
 </script>
