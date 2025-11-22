@@ -31,18 +31,48 @@
     .ok{color:green;font-weight:800}
     .err{color:#b00020;font-weight:800}
     .warn{color:#c27b00;font-weight:800}
+
+    /* ✅ PIN con occhietto */
+    .pin-wrap{
+      position:relative;
+      display:flex;
+      align-items:center;
+    }
+    .pin-wrap input{
+      padding-right:44px; /* spazio per occhio */
+    }
+    .eye-btn{
+      position:absolute;
+      right:8px;
+      top:50%;
+      transform:translateY(-50%);
+      width:32px;height:32px;
+      border-radius:8px;
+      border:1px solid #ddd;
+      background:white;
+      color:#333;
+      font-size:16px;
+      line-height:30px;
+      cursor:pointer;
+      display:flex;align-items:center;justify-content:center;
+      user-select:none;
+    }
   </style>
 </head>
 <body>
   <h1>Timbratura</h1>
   <div class="small" id="sede"></div>
+  <div class="small" id="modeHint" style="margin-top:4px; display:none;"></div>
 
   <div class="box">
     <label>Matricola</label>
     <input id="employeeId" inputmode="numeric" placeholder="es. 1042"/>
 
     <label style="margin-top:6px;display:block;">PIN</label>
-    <input id="pin" inputmode="numeric" type="password" placeholder="4 cifre"/>
+    <div class="pin-wrap">
+      <input id="pin" inputmode="numeric" type="password" placeholder="4 cifre"/>
+      <button type="button" id="eyeBtn" class="eye-btn" aria-label="Mostra/Nascondi PIN">👁️</button>
+    </div>
   </div>
 
   <div class="box row" id="buttons">
@@ -59,6 +89,9 @@ const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbw3UYl68d61ym-mPVrg
 const statusEl = document.getElementById("status");
 const sedeEl = document.getElementById("sede");
 const buttonsEl = document.getElementById("buttons");
+const modeHintEl = document.getElementById("modeHint");
+const pinInput = document.getElementById("pin");
+const eyeBtn = document.getElementById("eyeBtn");
 
 function getParam(name){
   const u = new URL(location.href);
@@ -88,9 +121,16 @@ function disableButtonsSafe(){
   if (bAuto) bAuto.disabled = true;
 }
 
+/* ✅ Occhietto PIN */
+eyeBtn.addEventListener("click", () => {
+  const isHidden = pinInput.type === "password";
+  pinInput.type = isHidden ? "text" : "password";
+  eyeBtn.textContent = isHidden ? "🙈" : "👁️";
+});
+
 async function sendTimbro(type){
   const employeeId = document.getElementById("employeeId").value.trim();
-  const pin = document.getElementById("pin").value.trim();
+  const pin = pinInput.value.trim();
 
   if(!employeeId || !pin){
     setStatus("Inserisci matricola e PIN.", "err");
@@ -162,7 +202,7 @@ async function sendTimbro(type){
 document.getElementById("btnIn").onclick = () => sendTimbro("IN");
 document.getElementById("btnOut").onclick = () => sendTimbro("OUT");
 
-// ✅ QR dedicati: stesso testo dei bottoni normali
+// ✅ QR dedicati: stesso testo + stesso colore + micro-hint
 if (presetMode === "IN" || presetMode === "OUT") {
   const isIn = presetMode === "IN";
   const cls = isIn ? "btn-in" : "btn-out";
@@ -170,6 +210,11 @@ if (presetMode === "IN" || presetMode === "OUT") {
 
   buttonsEl.innerHTML = `<button id="autoBtn" class="${cls} btn-auto">${label}</button>`;
   document.getElementById("autoBtn").onclick = () => sendTimbro(presetMode);
+
+  modeHintEl.style.display = "block";
+  modeHintEl.textContent = isIn
+    ? "Modalità QR Entrata attiva"
+    : "Modalità QR Uscita attiva";
 }
 </script>
 </body>
