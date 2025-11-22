@@ -38,7 +38,7 @@
   <div class="box small" id="status">Pronto.</div>
 
 <script>
-/** INCOLLA QUI L’URL WEB APP DI APPS SCRIPT */
+/** INCOLLA QUI L’URL WEB APP DI APPS SCRIPT (quello che finisce con /exec) */
 const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbw3UYl68d61ym-mPVrgh1QyphQaaWotOSgrczzNGRS3KD9euIpDg-nv60Ns06vRCfLx/exec";
 
 const statusEl = document.getElementById("status");
@@ -84,13 +84,16 @@ async function sendTimbro(type){
     clientTs: new Date().toISOString()
   };
 
+  // 👇 FIX CORS: Content-Type text/plain => niente preflight OPTIONS
   const send = async (payload) => {
     setStatus("Invio timbro " + type + "…");
+
     const r = await fetch(WEBHOOK_URL, {
       method: "POST",
-      headers: {"Content-Type":"application/json"},
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify(payload)
     });
+
     const j = await r.json();
 
     if(!r.ok || !j.ok){
@@ -105,13 +108,13 @@ async function sendTimbro(type){
       setStatus(`Timbro registrato ✅ (${type})`, "ok");
     }
 
-    // blocca bottoni per evitare doppio tap istantaneo
     document.getElementById("btnIn").disabled = true;
     document.getElementById("btnOut").disabled = true;
   };
 
   if(!navigator.geolocation){
-    return send({ ...payloadBase, lat:"NO_GPS", lon:"NO_GPS", accuracy:"" });
+    return send({ ...payloadBase, lat:"NO_GPS", lon:"NO_GPS", accuracy:"" })
+      .catch(e => setStatus("Errore invio: "+e.message, "err"));
   }
 
   navigator.geolocation.getCurrentPosition(
@@ -121,12 +124,14 @@ async function sendTimbro(type){
       lon: pos.coords.longitude,
       accuracy: pos.coords.accuracy
     }).catch(e => setStatus("Errore invio: "+e.message, "err")),
+
     err => send({
       ...payloadBase,
       lat: "GPS_DENIED",
       lon: "GPS_DENIED",
       accuracy: ""
     }).catch(e => setStatus("Errore invio: "+e.message, "err")),
+
     { enableHighAccuracy:true, timeout: 10000 }
   );
 }
