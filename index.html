@@ -11,13 +11,20 @@
     }
     h1{font-size:22px;margin:0 0 8px;}
     .box{background:#f6f6f6;border-radius:14px;padding:14px;margin:10px 0;}
+    label{font-size:14px; display:block; margin-bottom:6px;}
+
     input,button{
-      width:100%;padding:12px;font-size:16px;border-radius:10px;
-      border:1px solid #ddd;box-sizing:border-box;
+      width:100%;
+      padding:12px;
+      font-size:16px;
+      border-radius:10px;
+      border:1px solid #ddd;
+      box-sizing:border-box;
+      height:46px;
     }
+
     button{
-      border:none;margin-top:8px;cursor:pointer;font-weight:700;
-      color:white;
+      border:none;margin-top:8px;cursor:pointer;font-weight:700;color:white;
     }
     .row{display:flex;gap:10px;}
     .row button{flex:1;}
@@ -25,21 +32,21 @@
     /* ✅ Colori timbratura */
     .btn-in{ background:#1f9d55; }    /* verde */
     .btn-out{ background:#d64545; }   /* rosso */
-    .btn-in:disabled, .btn-out:disabled, .btn-auto:disabled { opacity:0.6; cursor:not-allowed; }
+    .btn-in:disabled, .btn-out:disabled, .btn-auto:disabled {
+      opacity:0.6; cursor:not-allowed;
+    }
 
     .small{font-size:12px;opacity:.7}
     .ok{color:green;font-weight:800}
     .err{color:#b00020;font-weight:800}
     .warn{color:#c27b00;font-weight:800}
 
-    /* ✅ PIN con occhietto */
+    /* ✅ PIN con icona Material dentro input */
     .pin-wrap{
       position:relative;
-      display:flex;
-      align-items:center;
     }
     .pin-wrap input{
-      padding-right:44px; /* spazio per occhio */
+      padding-right:48px; /* spazio per occhio */
     }
     .eye-btn{
       position:absolute;
@@ -47,16 +54,18 @@
       top:50%;
       transform:translateY(-50%);
       width:32px;height:32px;
-      border-radius:8px;
-      border:1px solid #ddd;
-      background:white;
-      color:#333;
-      font-size:16px;
-      line-height:30px;
-      cursor:pointer;
+      background:transparent;
+      border:none;
+      margin:0;
+      padding:0;
       display:flex;align-items:center;justify-content:center;
-      user-select:none;
+      cursor:pointer;
+      color:#555;
+      border-radius:6px;
     }
+    .eye-btn:active{ background:rgba(0,0,0,0.06); }
+    .eye-btn svg{ width:22px;height:22px; display:block; fill:currentColor; }
+
   </style>
 </head>
 <body>
@@ -65,13 +74,13 @@
   <div class="small" id="modeHint" style="margin-top:4px; display:none;"></div>
 
   <div class="box">
-    <label>Matricola</label>
+    <label for="employeeId">Matricola</label>
     <input id="employeeId" inputmode="numeric" placeholder="es. 1042"/>
 
-    <label style="margin-top:6px;display:block;">PIN</label>
+    <label for="pin" style="margin-top:10px;">PIN</label>
     <div class="pin-wrap">
       <input id="pin" inputmode="numeric" type="password" placeholder="4 cifre"/>
-      <button type="button" id="eyeBtn" class="eye-btn" aria-label="Mostra/Nascondi PIN">👁️</button>
+      <button type="button" id="eyeBtn" class="eye-btn" aria-label="Mostra/Nascondi PIN"></button>
     </div>
   </div>
 
@@ -121,11 +130,27 @@ function disableButtonsSafe(){
   if (bAuto) bAuto.disabled = true;
 }
 
-/* ✅ Occhietto PIN */
+/* ✅ Material icons (inline SVG) */
+const ICON_VISIBILITY = `
+<svg viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 5c-7 0-11 7-11 7s4 7 11 7 11-7 11-7-4-7-11-7zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/>
+</svg>`;
+const ICON_VISIBILITY_OFF = `
+<svg viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 6c3.79 0 6.83 2.59 8.27 5-0.57 0.97-1.35 1.93-2.33 2.72l1.42 1.42c1.23-1.04 2.24-2.29 2.96-3.64C21 11 17 4 12 4c-1.52 0-2.94.29-4.22.8l1.66 1.66C10.25 6.17 11.1 6 12 6zm-9.27-3.73L1.46 3.54l3.06 3.06C3.06 7.86 1.98 9.37 1.73 9.8 3 12 7 19 12 19c1.74 0 3.35-.38 4.79-1.03l3.67 3.67 1.27-1.27L2.73 2.27zM7.11 8.79l1.7 1.7A3 3 0 0 0 12 15c.36 0 .7-.06 1.02-.17l1.65 1.65C13.86 16.82 12.95 17 12 17a5 5 0 0 1-4.89-8.21z"/>
+</svg>`;
+
+/* ✅ Occhietto PIN bello e standard */
+let pinHidden = true;
+function renderEye(){
+  eyeBtn.innerHTML = pinHidden ? ICON_VISIBILITY : ICON_VISIBILITY_OFF;
+}
+renderEye();
+
 eyeBtn.addEventListener("click", () => {
-  const isHidden = pinInput.type === "password";
-  pinInput.type = isHidden ? "text" : "password";
-  eyeBtn.textContent = isHidden ? "🙈" : "👁️";
+  pinHidden = !pinHidden;
+  pinInput.type = pinHidden ? "password" : "text";
+  renderEye();
 });
 
 async function sendTimbro(type){
