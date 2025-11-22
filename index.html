@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Timbro QR v2</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;max-width:520px;margin:0 auto;padding:18px;}
+    h1{font-size:22px;margin:0 0 8px;}
+    .box{background:#f6f6f6;border-radius:14px;padding:14px;margin:10px 0;}
+    input,button{width:100%;padding:12px;font-size:16px;border-radius:10px;border:1px solid #ddd;box-sizing:border-box;}
+    button{border:none;margin-top:8px;cursor:pointer;font-weight:700;}
+    .row{display:flex;gap:10px;}
+    .row button{flex:1;}
+    .small{font-size:12px;opacity:.7}
+    .ok{color:green;font-weight:800}
+    .err{color:#b00020;font-weight:800}
+    .warn{color:#c27b00;font-weight:800}
+  </style>
+</head>
+<body>
+  <h1>Timbratura</h1>
+  <div class="small" id="sede"></div>
+
+  <div class="box">
+    <label>Matricola</label>
+    <input id="employeeId" inputmode="numeric" placeholder="es. 1042"/>
+
+    <label style="margin-top:6px;display:block;">PIN</label>
+    <input id="pin" inputmode="numeric" type="password" placeholder="4 cifre"/>
+  </div>
+
+  <div class="box row" id="buttons">
+    <button id="btnIn">ENTRATA</button>
+    <button id="btnOut">USCITA</button>
+  </div>
+
+  <div class="box small" id="status">Pronto.</div>
+
+<script>
+/** INCOLLA QUI L’URL WEB APP DI APPS SCRIPT */
+const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbw3UYl68d61ym-mPVrgh1QyphQaaWotOSgrczzNGRS3KD9euIpDg-nv60Ns06vRCfLx/exec";
+
+const statusEl = document.getElementById("status");
+const sedeEl = document.getElementById("sede");
+const buttonsEl = document.getElementById("buttons");
+
+function getParam(name){
+  const u = new URL(location.href);
+  return u.searchParams.get(name);
+}
+
+const locationId = getParam("loc") || "UNKNOWN_SEDE";
+const presetMode = getParam("mode"); // opzionale: IN/OUT preimpostato
+
+sedeEl.textContent = "Sede: " + locationId;
+
+function deviceId(){
+  return btoa(navigator.userAgent).slice(0,32);
+}
+
+function setStatus(msg, cls=""){
+  statusEl.className = "box small " + cls;
+  statusEl.textContent = msg;
+}
+
+async function sendTimbro(type){
+  const employeeId = document.getElementById("employeeId").value.trim();
+  const pin = document.getElementById("pin").value.trim();
+
+  if(!employeeId || !pin){
+    setStatus("Inserisci matricola e PIN.", "err");
+    return;
+  }
+
+  setStatus("Recupero posizione… se neghi, timbro uguale.");
+
+  const payloadBase = {
+    employeeId,
+    pin,
+    type,
+    locationId,
+    deviceId: deviceId(),
+    clientTs: new Date().toISOString()
+  };
+
+  const send = async (payload) => {
+    setStatus("Invio timbro " + type + "…");
+    const r = await fetch(WEBHOOK_URL, {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify(payload)
+    });
+    const j = await r.json();
+
+    if(!r.ok || !j.ok){
+      throw new Error(j.error || ("HTTP " + r.status));
+    }
+
+    if (j.geofenceOk === false){
+      setStatus(`Timbro registrato ⚠️ fuori area (${j.distanceM}m)`, "warn");
+    } else if (j.geofenceOk === "UNKNOWN"){
+      setStatus("Timbro registrato ✅ (GPS non disponibile)", "ok");
+    } else {
+      setStatus(`Timbro registrato ✅ (${type})`, "ok");
+    }
+
+    // blocca bottoni per evitare doppio tap istantaneo
+    document.getElementById("btnIn").disabled = true;
+    document.getElementById("btnOut").disabled = true;
+  };
+
+  if(!navigator.geolocation){
+    return send({ ...payloadBase, lat:"NO_GPS", lon:"NO_GPS", accuracy:"" });
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    pos => send({
+      ...payloadBase,
+      lat: pos.coords.latitude,
+      lon: pos.coords.longitude,
+      accuracy: pos.coords.accuracy
+    }).catch(e => setStatus("Errore invio: "+e.message, "err")),
+    err => send({
+      ...payloadBase,
+      lat: "GPS_DENIED",
+      lon: "GPS_DENIED",
+      accuracy: ""
+    }).catch(e => setStatus("Errore invio: "+e.message, "err")),
+    { enableHighAccuracy:true, timeout: 10000 }
+  );
+}
+
+document.getElementById("btnIn").onclick = () => sendTimbro("IN");
+document.getElementById("btnOut").onclick = () => sendTimbro("OUT");
+
+// Se QR preimposta mode, auto-timbratura (conferma light)
+if (presetMode === "IN" || presetMode === "OUT") {
+  buttonsEl.innerHTML = `<button id="autoBtn">Conferma ${presetMode}</button>`;
+  document.getElementById("autoBtn").onclick = () => sendTimbro(presetMode);
+}
+</script>
+</body>
+</html>
