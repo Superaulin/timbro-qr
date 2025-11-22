@@ -5,13 +5,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Timbro QR v2</title>
   <style>
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;max-width:520px;margin:0 auto;padding:18px;}
+    body{
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+      max-width:520px;margin:0 auto;padding:18px;
+    }
     h1{font-size:22px;margin:0 0 8px;}
     .box{background:#f6f6f6;border-radius:14px;padding:14px;margin:10px 0;}
-    input,button{width:100%;padding:12px;font-size:16px;border-radius:10px;border:1px solid #ddd;box-sizing:border-box;}
-    button{border:none;margin-top:8px;cursor:pointer;font-weight:700;}
+    input,button{
+      width:100%;padding:12px;font-size:16px;border-radius:10px;
+      border:1px solid #ddd;box-sizing:border-box;
+    }
+    button{
+      border:none;margin-top:8px;cursor:pointer;font-weight:700;
+      color:white;
+    }
     .row{display:flex;gap:10px;}
     .row button{flex:1;}
+
+    /* ✅ Colori timbratura */
+    .btn-in{ background:#1f9d55; }    /* verde */
+    .btn-out{ background:#d64545; }   /* rosso */
+    .btn-in:disabled, .btn-out:disabled, .btn-auto:disabled { opacity:0.6; cursor:not-allowed; }
+
     .small{font-size:12px;opacity:.7}
     .ok{color:green;font-weight:800}
     .err{color:#b00020;font-weight:800}
@@ -31,14 +46,14 @@
   </div>
 
   <div class="box row" id="buttons">
-    <button id="btnIn">ENTRATA</button>
-    <button id="btnOut">USCITA</button>
+    <button id="btnIn" class="btn-in">ENTRATA</button>
+    <button id="btnOut" class="btn-out">USCITA</button>
   </div>
 
   <div class="box small" id="status">Pronto.</div>
 
 <script>
-/** INCOLLA QUI L’URL WEB APP DI APPS SCRIPT (quello che finisce con /exec) */
+/** ✅ Webhook tua, già dentro */
 const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbw3UYl68d61ym-mPVrgh1QyphQaaWotOSgrczzNGRS3KD9euIpDg-nv60Ns06vRCfLx/exec";
 
 const statusEl = document.getElementById("status");
@@ -64,6 +79,15 @@ function setStatus(msg, cls=""){
   statusEl.textContent = msg;
 }
 
+function disableButtonsSafe(){
+  const bIn = document.getElementById("btnIn");
+  const bOut = document.getElementById("btnOut");
+  const bAuto = document.getElementById("autoBtn");
+  if (bIn) bIn.disabled = true;
+  if (bOut) bOut.disabled = true;
+  if (bAuto) bAuto.disabled = true;
+}
+
 async function sendTimbro(type){
   const employeeId = document.getElementById("employeeId").value.trim();
   const pin = document.getElementById("pin").value.trim();
@@ -84,7 +108,7 @@ async function sendTimbro(type){
     clientTs: new Date().toISOString()
   };
 
-  // 👇 FIX CORS: Content-Type text/plain => niente preflight OPTIONS
+  // FIX CORS: text/plain => niente preflight
   const send = async (payload) => {
     setStatus("Invio timbro " + type + "…");
 
@@ -108,8 +132,7 @@ async function sendTimbro(type){
       setStatus(`Timbro registrato ✅ (${type})`, "ok");
     }
 
-    document.getElementById("btnIn").disabled = true;
-    document.getElementById("btnOut").disabled = true;
+    disableButtonsSafe();
   };
 
   if(!navigator.geolocation){
@@ -139,9 +162,10 @@ async function sendTimbro(type){
 document.getElementById("btnIn").onclick = () => sendTimbro("IN");
 document.getElementById("btnOut").onclick = () => sendTimbro("OUT");
 
-// Se QR preimposta mode, auto-timbratura (conferma light)
+// Se QR preimposta mode, auto-timbratura (conferma light) + stesso colore
 if (presetMode === "IN" || presetMode === "OUT") {
-  buttonsEl.innerHTML = `<button id="autoBtn">Conferma ${presetMode}</button>`;
+  const cls = presetMode === "IN" ? "btn-in" : "btn-out";
+  buttonsEl.innerHTML = `<button id="autoBtn" class="${cls} btn-auto">Conferma ${presetMode}</button>`;
   document.getElementById("autoBtn").onclick = () => sendTimbro(presetMode);
 }
 </script>
