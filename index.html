@@ -22,16 +22,14 @@
       box-sizing:border-box;
       height:46px;
     }
-
     button{
       border:none;margin-top:8px;cursor:pointer;font-weight:700;color:white;
     }
     .row{display:flex;gap:10px;}
     .row button{flex:1;}
 
-    /* ✅ Colori timbratura */
-    .btn-in{ background:#1f9d55; }    /* verde */
-    .btn-out{ background:#d64545; }   /* rosso */
+    .btn-in{ background:#1f9d55; }
+    .btn-out{ background:#d64545; }
     .btn-in:disabled, .btn-out:disabled, .btn-auto:disabled {
       opacity:0.6; cursor:not-allowed;
     }
@@ -41,36 +39,21 @@
     .err{color:#b00020;font-weight:800}
     .warn{color:#c27b00;font-weight:800}
 
-    /* ✅ PIN con icona Material dentro input */
-    .pin-wrap{
-      position:relative;
-    }
-    .pin-wrap input{
-      padding-right:48px; /* spazio per occhio */
-    }
+    .pin-wrap{ position:relative; }
+    .pin-wrap input{ padding-right:48px; }
     .eye-btn{
-      position:absolute;
-      right:8px;
-      top:50%;
-      transform:translateY(-50%);
-      width:32px;height:32px;
-      background:transparent;
-      border:none;
-      margin:0;
-      padding:0;
-      display:flex;align-items:center;justify-content:center;
-      cursor:pointer;
-      color:#555;
-      border-radius:6px;
+      position:absolute; right:8px; top:50%; transform:translateY(-50%);
+      width:32px;height:32px; background:transparent; border:none; margin:0; padding:0;
+      display:flex;align-items:center;justify-content:center; cursor:pointer; color:#555; border-radius:6px;
     }
     .eye-btn:active{ background:rgba(0,0,0,0.06); }
-    .eye-btn svg{ width:22px;height:22px; display:block; fill:currentColor; }
-
+    .eye-btn svg{ width:22px;height:22px; fill:currentColor; }
   </style>
 </head>
 <body>
   <h1>Timbratura</h1>
   <div class="small" id="sede"></div>
+  <div class="small" id="indirizzo" style="margin-top:3px;"></div>
   <div class="small" id="modeHint" style="margin-top:4px; display:none;"></div>
 
   <div class="box">
@@ -92,11 +75,11 @@
   <div class="box small" id="status">Pronto.</div>
 
 <script>
-/** ✅ Webhook tua, già dentro */
 const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbw3UYl68d61ym-mPVrgh1QyphQaaWotOSgrczzNGRS3KD9euIpDg-nv60Ns06vRCfLx/exec";
 
 const statusEl = document.getElementById("status");
 const sedeEl = document.getElementById("sede");
+const indirizzoEl = document.getElementById("indirizzo");
 const buttonsEl = document.getElementById("buttons");
 const modeHintEl = document.getElementById("modeHint");
 const pinInput = document.getElementById("pin");
@@ -107,10 +90,11 @@ function getParam(name){
   return u.searchParams.get(name);
 }
 
+// ✅ Parametri QR
 const locationId = getParam("loc") || "UNKNOWN_SEDE";
-const presetMode = getParam("mode"); // opzionale: IN/OUT preimpostato
-
-sedeEl.textContent = "Sede: " + locationId;
+const presetMode = getParam("mode"); // IN/OUT preimpostato
+const nameFromQr = getParam("name"); // opzionale: nome sede umano
+const addrFromQr = getParam("addr"); // opzionale: indirizzo umano
 
 function deviceId(){
   return btoa(navigator.userAgent).slice(0,32);
@@ -130,21 +114,14 @@ function disableButtonsSafe(){
   if (bAuto) bAuto.disabled = true;
 }
 
-/* ✅ Material icons (inline SVG) */
+/* ✅ Material eye icons */
 const ICON_VISIBILITY = `
-<svg viewBox="0 0 24 24" aria-hidden="true">
-  <path d="M12 5c-7 0-11 7-11 7s4 7 11 7 11-7 11-7-4-7-11-7zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/>
-</svg>`;
+<svg viewBox="0 0 24 24"><path d="M12 5c-7 0-11 7-11 7s4 7 11 7 11-7 11-7-4-7-11-7zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></svg>`;
 const ICON_VISIBILITY_OFF = `
-<svg viewBox="0 0 24 24" aria-hidden="true">
-  <path d="M12 6c3.79 0 6.83 2.59 8.27 5-0.57 0.97-1.35 1.93-2.33 2.72l1.42 1.42c1.23-1.04 2.24-2.29 2.96-3.64C21 11 17 4 12 4c-1.52 0-2.94.29-4.22.8l1.66 1.66C10.25 6.17 11.1 6 12 6zm-9.27-3.73L1.46 3.54l3.06 3.06C3.06 7.86 1.98 9.37 1.73 9.8 3 12 7 19 12 19c1.74 0 3.35-.38 4.79-1.03l3.67 3.67 1.27-1.27L2.73 2.27zM7.11 8.79l1.7 1.7A3 3 0 0 0 12 15c.36 0 .7-.06 1.02-.17l1.65 1.65C13.86 16.82 12.95 17 12 17a5 5 0 0 1-4.89-8.21z"/>
-</svg>`;
+<svg viewBox="0 0 24 24"><path d="M12 6c3.79 0 6.83 2.59 8.27 5-0.57 0.97-1.35 1.93-2.33 2.72l1.42 1.42c1.23-1.04 2.24-2.29 2.96-3.64C21 11 17 4 12 4c-1.52 0-2.94.29-4.22.8l1.66 1.66C10.25 6.17 11.1 6 12 6zm-9.27-3.73L1.46 3.54l3.06 3.06C3.06 7.86 1.98 9.37 1.73 9.8 3 12 7 19 12 19c1.74 0 3.35-.38 4.79-1.03l3.67 3.67 1.27-1.27L2.73 2.27zM7.11 8.79l1.7 1.7A3 3 0 0 0 12 15c.36 0 .7-.06 1.02-.17l1.65 1.65C13.86 16.82 12.95 17 12 17a5 5 0 0 1-4.89-8.21z"/></svg>`;
 
-/* ✅ Occhietto PIN bello e standard */
 let pinHidden = true;
-function renderEye(){
-  eyeBtn.innerHTML = pinHidden ? ICON_VISIBILITY : ICON_VISIBILITY_OFF;
-}
+function renderEye(){ eyeBtn.innerHTML = pinHidden ? ICON_VISIBILITY : ICON_VISIBILITY_OFF; }
 renderEye();
 
 eyeBtn.addEventListener("click", () => {
@@ -152,6 +129,33 @@ eyeBtn.addEventListener("click", () => {
   pinInput.type = pinHidden ? "password" : "text";
   renderEye();
 });
+
+/* ✅ Mostra sede umana:
+   - se QR passa name/addr => usiamo quelli (fast, zero fetch)
+   - sennò proviamo a leggerli dal backend
+*/
+async function initSedeUI(){
+  if (nameFromQr || addrFromQr){
+    sedeEl.textContent = nameFromQr ? `Sede: ${decodeURIComponent(nameFromQr)}` : `Sede: ${locationId}`;
+    indirizzoEl.textContent = addrFromQr ? decodeURIComponent(addrFromQr) : "";
+    return;
+  }
+
+  sedeEl.textContent = `Sede: ${locationId}`;
+  indirizzoEl.textContent = "";
+
+  try{
+    const r = await fetch(`${WEBHOOK_URL}?action=sede&loc=${encodeURIComponent(locationId)}`);
+    const j = await r.json();
+    if (j.ok){
+      sedeEl.textContent = `Sede: ${j.nomeSede || locationId}`;
+      indirizzoEl.textContent = j.indirizzo || "";
+    }
+  }catch(e){
+    // fallback silenzioso
+  }
+}
+initSedeUI();
 
 async function sendTimbro(type){
   const employeeId = document.getElementById("employeeId").value.trim();
@@ -173,7 +177,6 @@ async function sendTimbro(type){
     clientTs: new Date().toISOString()
   };
 
-  // FIX CORS: text/plain => niente preflight
   const send = async (payload) => {
     setStatus("Invio timbro " + type + "…");
 
@@ -227,7 +230,6 @@ async function sendTimbro(type){
 document.getElementById("btnIn").onclick = () => sendTimbro("IN");
 document.getElementById("btnOut").onclick = () => sendTimbro("OUT");
 
-// ✅ QR dedicati: stesso testo + stesso colore + micro-hint
 if (presetMode === "IN" || presetMode === "OUT") {
   const isIn = presetMode === "IN";
   const cls = isIn ? "btn-in" : "btn-out";
