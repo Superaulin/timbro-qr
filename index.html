@@ -48,12 +48,35 @@
     }
     .eye-btn:active{ background:rgba(0,0,0,0.06); }
     .eye-btn svg{ width:22px;height:22px; fill:currentColor; }
+
+    /* ✅ piccolo “loader” testuale */
+    .loading-dots::after{
+      content:"";
+      display:inline-block;
+      width:1em;
+      animation:dots 1.2s infinite steps(3,end);
+    }
+    @keyframes dots{
+      0%{content:"";}
+      33%{content:".";}
+      66%{content:"..";}
+      100%{content:"...";}
+    }
+
+    /* ✅ fallback locationId stile “tecnico”, solo se serve */
+    .tech{
+      font-size:11px; opacity:.55; margin-top:2px;
+    }
   </style>
 </head>
 <body>
   <h1>Timbratura</h1>
+
+  <!-- ✅ UI sede umana -->
   <div class="small" id="sede"></div>
   <div class="small" id="indirizzo" style="margin-top:3px;"></div>
+  <div class="tech" id="locTech" style="display:none;"></div>
+
   <div class="small" id="modeHint" style="margin-top:4px; display:none;"></div>
 
   <div class="box">
@@ -80,6 +103,7 @@ const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbw3UYl68d61ym-mPVrg
 const statusEl = document.getElementById("status");
 const sedeEl = document.getElementById("sede");
 const indirizzoEl = document.getElementById("indirizzo");
+const locTechEl = document.getElementById("locTech");
 const buttonsEl = document.getElementById("buttons");
 const modeHintEl = document.getElementById("modeHint");
 const pinInput = document.getElementById("pin");
@@ -90,11 +114,8 @@ function getParam(name){
   return u.searchParams.get(name);
 }
 
-// ✅ Parametri QR
 const locationId = getParam("loc") || "UNKNOWN_SEDE";
 const presetMode = getParam("mode"); // IN/OUT preimpostato
-const nameFromQr = getParam("name"); // opzionale: nome sede umano
-const addrFromQr = getParam("addr"); // opzionale: indirizzo umano
 
 function deviceId(){
   return btoa(navigator.userAgent).slice(0,32);
@@ -130,32 +151,77 @@ eyeBtn.addEventListener("click", () => {
   renderEye();
 });
 
-/* ✅ Mostra sede umana:
-   - se QR passa name/addr => usiamo quelli (fast, zero fetch)
-   - sennò proviamo a leggerli dal backend
-*/
-async function initSedeUI(){
-  if (nameFromQr || addrFromQr){
-    sedeEl.textContent = nameFromQr ? `Sede: ${decodeURIComponent(nameFromQr)}` : `Sede: ${locationId}`;
-    indirizzoEl.textContent = addrFromQr ? decodeURIComponent(addrFromQr) : "";
-    return;
-  }
 
-  sedeEl.textContent = `Sede: ${locationId}`;
+/* ============================================================
+   ✅ Sede UI veloce (cache + niente flicker)
+   ============================================================ */
+
+const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 giorni
+const cacheKey = `sedeInfo_${locationId}`;
+
+function showSede(nome, indirizzo){
+  sedeEl.textContent = `Sede: ${nome}`;
+  indirizzoEl.textContent = indirizzo || "";
+}
+
+function showLoadingSede(){
+  sedeEl.textContent = "Sede: Caricamento";
+  sedeEl.classList.add("loading-dots");
   indirizzoEl.textContent = "";
+  locTechEl.style.display = "none";
+}
 
-  try{
-    const r = await fetch(`${WEBHOOK_URL}?action=sede&loc=${encodeURIComponent(locationId)}`);
-    const j = await r.json();
-    if (j.ok){
-      sedeEl.textContent = `Sede: ${j.nomeSede || locationId}`;
-      indirizzoEl.textContent = j.indirizzo || "";
+function showTechLocFallback(){
+  locTechEl.textContent = `ID sede: ${locationId}`;
+  locTechEl.style.display = "block";
+}
+
+async function initSedeUI(){
+  showLoadingSede();
+
+  // 1) prova cache istantanea
+  try {
+    const cached = JSON.parse(localStorage.getItem(cacheKey) || "null");
+    if (cached && (Date.now() - cached.ts) < CACHE_TTL_MS) {
+      sedeEl.classList.remove("loading-dots");
+      showSede(cached.nomeSede || locationId, cached.indirizzo || "");
+      // refresh in background comunque
     }
+  } catch {}
+
+  // 2) fetch dal backend
+  try{
+    const r = await fetch(`${WEBHOOK_URL}?action=sede&loc=${encodeURIComponent(locationId)}`, { cache: "no-store" });
+    const j = await r.json();
+
+    if (j.ok){
+      sedeEl.classList.remove("loading-dots");
+      const nome = j.nomeSede || locationId;
+      const addr = j.indirizzo || "";
+      showSede(nome, addr);
+
+      // salva cache
+      localStorage.setItem(cacheKey, JSON.stringify({
+        ts: Date.now(),
+        nomeSede: nome,
+        indirizzo: addr
+      }));
+      return;
+    }
+    throw new Error("not ok");
   }catch(e){
-    // fallback silenzioso
+    // 3) fallback: mostra ID tecnico solo se non ho nome umano
+    sedeEl.classList.remove("loading-dots");
+    showSede(locationId, "");
+    showTechLocFallback();
   }
 }
 initSedeUI();
+
+
+/* ============================================================
+   ✅ Timbratura
+   ============================================================ */
 
 async function sendTimbro(type){
   const employeeId = document.getElementById("employeeId").value.trim();
@@ -230,6 +296,7 @@ async function sendTimbro(type){
 document.getElementById("btnIn").onclick = () => sendTimbro("IN");
 document.getElementById("btnOut").onclick = () => sendTimbro("OUT");
 
+// QR dedicati: stesso testo + stesso colore + micro-hint
 if (presetMode === "IN" || presetMode === "OUT") {
   const isIn = presetMode === "IN";
   const cls = isIn ? "btn-in" : "btn-out";
