@@ -1,315 +1,539 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Timbro QR v2</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Timbro Presenze</title>
   <style>
-    body{
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-      max-width:520px;margin:0 auto;padding:18px;
-    }
-    h1{font-size:22px;margin:0 0 8px;}
-    .box{background:#f6f6f6;border-radius:14px;padding:14px;margin:10px 0;}
-    label{font-size:14px; display:block; margin-bottom:6px;}
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
 
-    input,button{
-      width:100%;
-      padding:12px;
-      font-size:16px;
-      border-radius:10px;
-      border:1px solid #ddd;
-      box-sizing:border-box;
-      height:46px;
-    }
-    button{
-      border:none;margin-top:8px;cursor:pointer;font-weight:700;color:white;
-    }
-    .row{display:flex;gap:10px;}
-    .row button{flex:1;}
-
-    .btn-in{ background:#1f9d55; }
-    .btn-out{ background:#d64545; }
-    .btn-in:disabled, .btn-out:disabled, .btn-auto:disabled {
-      opacity:0.6; cursor:not-allowed;
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
     }
 
-    .small{font-size:12px;opacity:.7}
-    .ok{color:green;font-weight:800}
-    .err{color:#b00020;font-weight:800}
-    .warn{color:#c27b00;font-weight:800}
-
-    .pin-wrap{ position:relative; }
-    .pin-wrap input{ padding-right:48px; }
-    .eye-btn{
-      position:absolute; right:8px; top:50%; transform:translateY(-50%);
-      width:32px;height:32px; background:transparent; border:none; margin:0; padding:0;
-      display:flex;align-items:center;justify-content:center; cursor:pointer; color:#555; border-radius:6px;
-    }
-    .eye-btn:active{ background:rgba(0,0,0,0.06); }
-    .eye-btn svg{ width:22px;height:22px; fill:currentColor; }
-
-    /* ✅ piccolo “loader” testuale */
-    .loading-dots::after{
-      content:"";
-      display:inline-block;
-      width:1em;
-      animation:dots 1.2s infinite steps(3,end);
-    }
-    @keyframes dots{
-      0%{content:"";}
-      33%{content:".";}
-      66%{content:"..";}
-      100%{content:"...";}
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #1e3665, #008553);
+      padding: 16px;
     }
 
-    /* ✅ fallback locationId stile “tecnico”, solo se serve */
-    .tech{
-      font-size:11px; opacity:.55; margin-top:2px;
+    .login-container {
+      background: white;
+      padding: 24px 22px 20px;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    .logo {
+      width: 80px;
+      height: 80px;
+      object-fit: contain;
+      margin-bottom: 8px;
+    }
+
+    h2 {
+      font-size: 22px;
+      margin-bottom: 4px;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: #555;
+      margin-bottom: 4px;
+    }
+
+    .sede-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #1e3665;
+      margin-top: 4px;
+    }
+
+    .sede-indirizzo {
+      font-size: 11px;
+      color: #666;
+      margin-bottom: 6px;
+      min-height: 14px;
+    }
+
+    .mode-label {
+      font-size: 11px;
+      margin-bottom: 10px;
+      color: #444;
+    }
+
+    .mode-label span {
+      font-weight: 600;
+    }
+
+    form {
+      text-align: left;
+      margin-top: 6px;
+    }
+
+    .input-group {
+      margin-bottom: 12px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    input[type="text"],
+    input[type="password"],
+    input[type="number"] {
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input:focus {
+      border-color: #1e3665;
+      box-shadow: 0 0 0 2px rgba(30,54,101,0.15);
+    }
+
+    .password-wrapper {
+      display: flex;
+      align-items: center;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      padding-right: 4px;
+      background: #f9f9f9;
+    }
+
+    .password-wrapper input {
+      border: none;
+      background: transparent;
+      box-shadow: none;
+      padding-right: 0;
+    }
+
+    .password-wrapper input:focus {
+      border: none;
+      box-shadow: none;
+    }
+
+    .toggle-password {
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      padding: 0 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .toggle-password svg {
+      width: 18px;
+      height: 18px;
+      fill: #555;
+    }
+
+    .toggle-password:hover svg {
+      fill: #000;
+    }
+
+    .buttons-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .login-button {
+      flex: 1;
+      padding: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.1s, box-shadow 0.1s, background-color 0.15s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .login-button:disabled {
+      opacity: 0.6;
+      cursor: default;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .login-button:active:not(:disabled) {
+      transform: translateY(1px);
+      box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+    }
+
+    .btn-in {
+      background: #008553;
+      color: white;
+      box-shadow: 0 4px 8px rgba(0,133,83,0.35);
+    }
+
+    .btn-in:hover:not(:disabled) {
+      background: #006b42;
+    }
+
+    .btn-out {
+      background: #c62828;
+      color: white;
+      box-shadow: 0 4px 8px rgba(198,40,40,0.35);
+    }
+
+    .btn-out:hover:not(:disabled) {
+      background: #a31818;
+    }
+
+    .btn-out.secondary {
+      background: #eeeeee;
+      color: #333;
+      box-shadow: none;
+    }
+
+    .status {
+      margin-top: 10px;
+      font-size: 12px;
+      min-height: 32px;
+      text-align: left;
+      white-space: pre-line;
+    }
+
+    .status.ok {
+      color: #006b42;
+    }
+
+    .status.err {
+      color: #b71c1c;
+    }
+
+    .gps-note {
+      font-size: 10px;
+      color: #777;
+      margin-top: 4px;
+      text-align: left;
+    }
+
+    .footer-tech {
+      margin-top: 8px;
+      font-size: 9px;
+      color: #999;
+      text-align: right;
+    }
+
+    .footer-tech code {
+      font-size: 9px;
+      background: #f0f0f0;
+      padding: 1px 3px;
+      border-radius: 3px;
+    }
+
+    @media (max-width: 420px) {
+      .login-container {
+        padding: 18px 16px 16px;
+      }
+      h2 { font-size: 20px; }
     }
   </style>
 </head>
 <body>
-  <h1>Timbratura</h1>
+  <div class="login-container">
+    <!-- Logo aziendale: sostituisci src con il tuo -->
+    <img src="logo.png" alt="Logo Aziendale" class="logo" onerror="this.style.display='none'">
+    <h2>Timbro Presenze</h2>
+    <p class="subtitle">Registrazione ingresso / uscita</p>
 
-  <!-- ✅ UI sede umana -->
-  <div class="small" id="sede"></div>
-  <div class="small" id="indirizzo" style="margin-top:3px;"></div>
-  <div class="tech" id="locTech" style="display:none;"></div>
+    <p class="sede-label" id="sedeName">Sede: …</p>
+    <p class="sede-indirizzo" id="sedeAddress"></p>
+    <p class="mode-label" id="modeLabel">Modalità standard (scelta manuale)</p>
 
-  <div class="small" id="modeHint" style="margin-top:4px; display:none;"></div>
+    <form id="timbroForm" autocomplete="off">
+      <div class="input-group">
+        <label for="employeeId">ID dipendente</label>
+        <input type="text" id="employeeId" name="employeeId" placeholder="Es. 1001" inputmode="numeric">
+      </div>
 
-  <div class="box">
-    <label for="employeeId">Matricola</label>
-    <input id="employeeId" inputmode="numeric" placeholder="es. 1042"/>
+      <div class="input-group">
+        <label for="pin">PIN</label>
+        <div class="password-wrapper">
+          <input type="password" id="pin" name="pin" placeholder="PIN numerico">
+          <button type="button" class="toggle-password" id="togglePin" aria-label="Mostra/Nascondi PIN">
+            <!-- icona occhio inline SVG -->
+            <svg id="eyeIcon" viewBox="0 0 24 24">
+              <path d="M12 5C7 5 2.73 8.11 1 12c1.73 3.89 6 7 11 7s9.27-3.11 11-7c-1.73-3.89-6-7-11-7zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 .002 6.002A3 3 0 0 0 12 9z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
 
-    <label for="pin" style="margin-top:10px;">PIN</label>
-    <div class="pin-wrap">
-      <input id="pin" inputmode="numeric" type="password" placeholder="4 cifre"/>
-      <button type="button" id="eyeBtn" class="eye-btn" aria-label="Mostra/Nascondi PIN"></button>
+      <div class="buttons-row">
+        <button type="button" class="login-button btn-in" id="btnIn">Entrata</button>
+        <button type="button" class="login-button btn-out" id="btnOut">Uscita</button>
+      </div>
+    </form>
+
+    <div class="status" id="statusMsg"></div>
+    <div class="gps-note">
+      La posizione viene usata solo per verificare che il timbro avvenga in sede.<br>
+      Se neghi il GPS, il timbro viene registrato ma marcato come anomalia.
+    </div>
+
+    <div class="footer-tech">
+      QR: <code>loc</code> / <code>mode</code> &nbsp;·&nbsp; v2 UI
     </div>
   </div>
 
-  <div class="box row" id="buttons">
-    <button id="btnIn" class="btn-in">ENTRATA</button>
-    <button id="btnOut" class="btn-out">USCITA</button>
-  </div>
+  <script>
+    // 🔗 Webhook Apps Script (come da tua richiesta: sempre inclusa nel codice)
+    const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbw3UYl68d61ym-mPVrgh1QyphQaaWotOSgrczzNGRS3KD9euIpDg-nv60Ns06vRCfLx/exec";
 
-  <div class="box small" id="status">Pronto.</div>
+    document.addEventListener("DOMContentLoaded", () => {
+      const params = new URLSearchParams(window.location.search);
+      const locParam = params.get("loc") || "";
+      const modeParam = (params.get("mode") || "").toUpperCase();
 
-<script>
-const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbw3UYl68d61ym-mPVrgh1QyphQaaWotOSgrczzNGRS3KD9euIpDg-nv60Ns06vRCfLx/exec";
+      const sedeNameEl = document.getElementById("sedeName");
+      const sedeAddressEl = document.getElementById("sedeAddress");
+      const modeLabelEl = document.getElementById("modeLabel");
+      const statusEl = document.getElementById("statusMsg");
 
-const statusEl = document.getElementById("status");
-const sedeEl = document.getElementById("sede");
-const indirizzoEl = document.getElementById("indirizzo");
-const locTechEl = document.getElementById("locTech");
-const buttonsEl = document.getElementById("buttons");
-const modeHintEl = document.getElementById("modeHint");
-const pinInput = document.getElementById("pin");
-const eyeBtn = document.getElementById("eyeBtn");
+      const employeeIdInput = document.getElementById("employeeId");
+      const pinInput = document.getElementById("pin");
+      const btnIn = document.getElementById("btnIn");
+      const btnOut = document.getElementById("btnOut");
+      const togglePinBtn = document.getElementById("togglePin");
+      const eyeIcon = document.getElementById("eyeIcon");
 
-function getParam(name){
-  const u = new URL(location.href);
-  return u.searchParams.get(name);
-}
+      let currentMode = null; // null / "IN" / "OUT"
+      let sedeLoaded = false;
 
-const locationId = getParam("loc") || "UNKNOWN_SEDE";
-const presetMode = getParam("mode"); // IN/OUT preimpostato
+      // ========================
+      // Gestione modalità QR
+      // ========================
+      function applyMode(mode) {
+        currentMode = mode;
 
-function deviceId(){
-  return btoa(navigator.userAgent).slice(0,32);
-}
+        // reset stile
+        btnIn.classList.remove("secondary");
+        btnOut.classList.remove("secondary");
+        btnIn.disabled = false;
+        btnOut.disabled = false;
 
-function setStatus(msg, cls=""){
-  statusEl.className = "box small " + cls;
-  statusEl.textContent = msg;
-}
+        if (mode === "IN") {
+          modeLabelEl.innerHTML = 'Modalità QR: <span>Entrata attiva</span>';
+          btnOut.classList.add("secondary");
+        } else if (mode === "OUT") {
+          modeLabelEl.innerHTML = 'Modalità QR: <span>Uscita attiva</span>';
+          btnIn.classList.add("secondary");
+        } else {
+          modeLabelEl.textContent = "Modalità standard (scelta manuale)";
+        }
+      }
 
-function disableButtonsSafe(){
-  const bIn = document.getElementById("btnIn");
-  const bOut = document.getElementById("btnOut");
-  const bAuto = document.getElementById("autoBtn");
-  if (bIn) bIn.disabled = true;
-  if (bOut) bOut.disabled = true;
-  if (bAuto) bAuto.disabled = true;
-}
+      applyMode(modeParam === "IN" || modeParam === "OUT" ? modeParam : null);
 
-/* ✅ Material eye icons */
-const ICON_VISIBILITY = `
-<svg viewBox="0 0 24 24"><path d="M12 5c-7 0-11 7-11 7s4 7 11 7 11-7 11-7-4-7-11-7zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></svg>`;
-const ICON_VISIBILITY_OFF = `
-<svg viewBox="0 0 24 24"><path d="M12 6c3.79 0 6.83 2.59 8.27 5-0.57 0.97-1.35 1.93-2.33 2.72l1.42 1.42c1.23-1.04 2.24-2.29 2.96-3.64C21 11 17 4 12 4c-1.52 0-2.94.29-4.22.8l1.66 1.66C10.25 6.17 11.1 6 12 6zm-9.27-3.73L1.46 3.54l3.06 3.06C3.06 7.86 1.98 9.37 1.73 9.8 3 12 7 19 12 19c1.74 0 3.35-.38 4.79-1.03l3.67 3.67 1.27-1.27L2.73 2.27zM7.11 8.79l1.7 1.7A3 3 0 0 0 12 15c.36 0 .7-.06 1.02-.17l1.65 1.65C13.86 16.82 12.95 17 12 17a5 5 0 0 1-4.89-8.21z"/></svg>`;
+      // ========================
+      // Occhietto PIN
+      // ========================
+      togglePinBtn.addEventListener("click", () => {
+        if (pinInput.type === "password") {
+          pinInput.type = "text";
+          // icona "occhio barrato" molto semplice
+          eyeIcon.setAttribute("d", "");
+          eyeIcon.innerHTML = '<path d="M12 5C7 5 2.73 8.11 1 12c.64 1.44 1.64 2.76 2.88 3.86L3 16.74 4.26 18l1.9-1.9A11.5 11.5 0 0 0 12 19c5 0 9.27-3.11 11-7-.73-1.64-2-3.16-3.62-4.29L19 9.09A6.97 6.97 0 0 1 19.94 12c-1.39 2.82-4.21 5-7.94 5-1.2 0-2.34-.22-3.38-.62l1.76-1.76A3 3 0 0 0 14.5 12.5L16.75 10.25 18 9l-1.01-1.01L15 10.0 14.0 11l-1.91 1.91A3 3 0 0 0 9 11a3 3 0 0 0-.5 0L7.08 9.58A4.99 4.99 0 0 1 12 7c.69 0 1.35.13 1.97.36L15.45 5.9A7.02 7.02 0 0 0 12 5z"/>';
+        } else {
+          pinInput.type = "password";
+          eyeIcon.innerHTML = '<path d="M12 5C7 5 2.73 8.11 1 12c1.73 3.89 6 7 11 7s9.27-3.11 11-7c-1.73-3.89-6-7-11-7zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 .002 6.002A3 3 0 0 0 12 9z"/>';
+        }
+      });
 
-let pinHidden = true;
-function renderEye(){ eyeBtn.innerHTML = pinHidden ? ICON_VISIBILITY : ICON_VISIBILITY_OFF; }
-renderEye();
+      // ========================
+      // Caricamento info sede
+      // ========================
+      if (!locParam) {
+        setStatus("QR non valido: parametro 'loc' mancante.", true);
+        disableButtons(true);
+      } else {
+        sedeNameEl.textContent = "Sede: caricamento…";
+        fetch(WEBAPP_URL + "?action=sede&loc=" + encodeURIComponent(locParam))
+          .then(r => r.json())
+          .then(data => {
+            if (!data.ok) {
+              setStatus("Errore nel recupero della sede: " + (data.error || "sconosciuto"), true);
+              sedeNameEl.textContent = "Sede: errore";
+              disableButtons(true);
+              return;
+            }
+            sedeLoaded = true;
+            const nome = data.nomeSede || data.locationId;
+            const indirizzo = data.indirizzo || "";
 
-eyeBtn.addEventListener("click", () => {
-  pinHidden = !pinHidden;
-  pinInput.type = pinHidden ? "password" : "text";
-  renderEye();
-});
+            sedeNameEl.textContent = "Sede: " + nome;
+            sedeAddressEl.textContent = indirizzo;
+          })
+          .catch(err => {
+            setStatus("Errore rete nel recupero sede: " + err.message, true);
+            sedeNameEl.textContent = "Sede: errore rete";
+            disableButtons(true);
+          });
+      }
 
+      function disableButtons(flag) {
+        btnIn.disabled = flag;
+        btnOut.disabled = flag;
+      }
 
-/* ============================================================
-   ✅ Sede UI veloce (cache + niente flicker)
-   ============================================================ */
+      function setStatus(msg, isError) {
+        statusEl.textContent = msg || "";
+        statusEl.classList.remove("ok", "err");
+        if (!msg) return;
+        statusEl.classList.add(isError ? "err" : "ok");
+      }
 
-const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 giorni
-const cacheKey = `sedeInfo_${locationId}`;
+      // ========================
+      // Geolocalizzazione
+      // ========================
+      function getPosition() {
+        if (!navigator.geolocation) {
+          return Promise.resolve({
+            lat: "GPS_DENIED",
+            lon: "",
+            accuracy: ""
+          });
+        }
 
-function showSede(nome, indirizzo){
-  sedeEl.textContent = `Sede: ${nome}`;
-  indirizzoEl.textContent = indirizzo || "";
-}
+        return new Promise(resolve => {
+          navigator.geolocation.getCurrentPosition(
+            pos => {
+              resolve({
+                lat: pos.coords.latitude,
+                lon: pos.coords.longitude,
+                accuracy: pos.coords.accuracy
+              });
+            },
+            err => {
+              resolve({
+                lat: "GPS_DENIED",
+                lon: "",
+                accuracy: ""
+              });
+            },
+            {
+              enableHighAccuracy: true,
+              timeout: 10000,
+              maximumAge: 0
+            }
+          );
+        });
+      }
 
-function showLoadingSede(){
-  sedeEl.textContent = "Sede: Caricamento";
-  sedeEl.classList.add("loading-dots");
-  indirizzoEl.textContent = "";
-  locTechEl.style.display = "none";
-}
+      // ========================
+      // Invio timbro
+      // ========================
+      async function sendTimbro(type) {
+        const employeeId = (employeeIdInput.value || "").trim();
+        const pin = (pinInput.value || "").trim();
 
-function showTechLocFallback(){
-  locTechEl.textContent = `ID sede: ${locationId}`;
-  locTechEl.style.display = "block";
-}
+        if (!employeeId || !pin) {
+          setStatus("Inserisci ID dipendente e PIN.", true);
+          return;
+        }
 
-async function initSedeUI(){
-  showLoadingSede();
+        if (!locParam) {
+          setStatus("Parametro 'loc' mancante (QR non valido).", true);
+          return;
+        }
 
-  // 1) prova cache istantanea
-  try {
-    const cached = JSON.parse(localStorage.getItem(cacheKey) || "null");
-    if (cached && (Date.now() - cached.ts) < CACHE_TTL_MS) {
-      sedeEl.classList.remove("loading-dots");
-      showSede(cached.nomeSede || locationId, cached.indirizzo || "");
-      // refresh in background comunque
-    }
-  } catch {}
+        if (!sedeLoaded) {
+          setStatus("Attendi caricamento sede…", true);
+          return;
+        }
 
-  // 2) fetch dal backend
-  try{
-    const r = await fetch(`${WEBHOOK_URL}?action=sede&loc=${encodeURIComponent(locationId)}`, { cache: "no-store" });
-    const j = await r.json();
+        // se siamo in modalità dedicata, blocca il tipo sbagliato
+        if (currentMode === "IN" && type === "OUT") {
+          setStatus("Questo QR è solo per l'entrata.", true);
+          return;
+        }
+        if (currentMode === "OUT" && type === "IN") {
+          setStatus("Questo QR è solo per l'uscita.", true);
+          return;
+        }
 
-    if (j.ok){
-      sedeEl.classList.remove("loading-dots");
-      const nome = j.nomeSede || locationId;
-      const addr = j.indirizzo || "";
-      showSede(nome, addr);
+        disableButtons(true);
+        setStatus("Invio timbro " + type + " in corso…", false);
 
-      // salva cache
-      localStorage.setItem(cacheKey, JSON.stringify({
-        ts: Date.now(),
-        nomeSede: nome,
-        indirizzo: addr
-      }));
-      return;
-    }
-    throw new Error("not ok");
-  }catch(e){
-    // 3) fallback: mostra ID tecnico solo se non ho nome umano
-    sedeEl.classList.remove("loading-dots");
-    showSede(locationId, "");
-    showTechLocFallback();
-  }
-}
-initSedeUI();
+        try {
+          const pos = await getPosition();
+          const payload = {
+            employeeId,
+            pin,
+            type,
+            locationId: locParam,
+            lat: pos.lat,
+            lon: pos.lon,
+            accuracy: pos.accuracy,
+            deviceId: navigator.userAgent.slice(0, 120),
+            clientTs: new Date().toISOString()
+          };
 
+          const resp = await fetch(WEBAPP_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
 
-/* ============================================================
-   ✅ Timbratura
-   ============================================================ */
+          const data = await resp.json().catch(() => ({}));
 
-async function sendTimbro(type){
-  const employeeId = document.getElementById("employeeId").value.trim();
-  const pin = pinInput.value.trim();
+          if (!resp.ok || !data.ok) {
+            const msg = (data && data.error) ? data.error : ("HTTP " + resp.status);
+            setStatus("Errore timbro " + type + ": " + msg, true);
+            disableButtons(false);
+            return;
+          }
 
-  if(!employeeId || !pin){
-    setStatus("Inserisci matricola e PIN.", "err");
-    return;
-  }
+          const serverTs = data.serverTs ? new Date(data.serverTs) : null;
+          let msg = "Timbro " + type + " registrato correttamente.";
+          if (serverTs && !isNaN(serverTs.getTime())) {
+            const hh = String(serverTs.getHours()).padStart(2, "0");
+            const mm = String(serverTs.getMinutes()).padStart(2, "0");
+            msg += "\nOra server: " + hh + ":" + mm;
+          }
 
-  setStatus("Recupero posizione… se neghi, timbro uguale.");
+          if (data.geofenceOk === false) {
+            msg += "\nATTENZIONE: timbro fuori dall'area sede.";
+          } else if (data.geofenceOk === "UNKNOWN") {
+            msg += "\nNota: GPS non disponibile / negato.";
+          }
 
-  const payloadBase = {
-    employeeId,
-    pin,
-    type,
-    locationId,
-    deviceId: deviceId(),
-    clientTs: new Date().toISOString()
-  };
+          setStatus(msg, false);
+          // facoltativo: pulisci PIN
+          pinInput.value = "";
+        } catch (err) {
+          setStatus("Errore invio: " + err.message, true);
+        } finally {
+          disableButtons(false);
+        }
+      }
 
-  const send = async (payload) => {
-    setStatus("Invio timbro " + type + "…");
-
-    const r = await fetch(WEBHOOK_URL, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify(payload)
+      btnIn.addEventListener("click", () => sendTimbro("IN"));
+      btnOut.addEventListener("click", () => sendTimbro("OUT"));
     });
-
-    const j = await r.json();
-
-    if(!r.ok || !j.ok){
-      throw new Error(j.error || ("HTTP " + r.status));
-    }
-
-    if (j.geofenceOk === false){
-      setStatus(`Timbro registrato ⚠️ fuori area (${j.distanceM}m)`, "warn");
-    } else if (j.geofenceOk === "UNKNOWN"){
-      setStatus("Timbro registrato ✅ (GPS non disponibile)", "ok");
-    } else {
-      setStatus(`Timbro registrato ✅ (${type})`, "ok");
-    }
-
-    disableButtonsSafe();
-  };
-
-  if(!navigator.geolocation){
-    return send({ ...payloadBase, lat:"NO_GPS", lon:"NO_GPS", accuracy:"" })
-      .catch(e => setStatus("Errore invio: "+e.message, "err"));
-  }
-
-  navigator.geolocation.getCurrentPosition(
-    pos => send({
-      ...payloadBase,
-      lat: pos.coords.latitude,
-      lon: pos.coords.longitude,
-      accuracy: pos.coords.accuracy
-    }).catch(e => setStatus("Errore invio: "+e.message, "err")),
-
-    err => send({
-      ...payloadBase,
-      lat: "GPS_DENIED",
-      lon: "GPS_DENIED",
-      accuracy: ""
-    }).catch(e => setStatus("Errore invio: "+e.message, "err")),
-
-    { enableHighAccuracy:true, timeout: 10000 }
-  );
-}
-
-document.getElementById("btnIn").onclick = () => sendTimbro("IN");
-document.getElementById("btnOut").onclick = () => sendTimbro("OUT");
-
-// QR dedicati: stesso testo + stesso colore + micro-hint
-if (presetMode === "IN" || presetMode === "OUT") {
-  const isIn = presetMode === "IN";
-  const cls = isIn ? "btn-in" : "btn-out";
-  const label = isIn ? "ENTRATA" : "USCITA";
-
-  buttonsEl.innerHTML = `<button id="autoBtn" class="${cls} btn-auto">${label}</button>`;
-  document.getElementById("autoBtn").onclick = () => sendTimbro(presetMode);
-
-  modeHintEl.style.display = "block";
-  modeHintEl.textContent = isIn
-    ? "Modalità QR Entrata attiva"
-    : "Modalità QR Uscita attiva";
-}
-</script>
+  </script>
 </body>
 </html>
