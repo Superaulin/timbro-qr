@@ -254,8 +254,10 @@
 </head>
 <body>
   <div class="login-container">
-    <!-- Logo aziendale: sostituisci src con il tuo -->
-    <img src="logo.png" alt="Logo Aziendale" class="logo" onerror="this.style.display='none'">
+    <!-- LOGO AZIENDALE -->
+    <!-- Sostituisci "logo.png" con il path reale al tuo logo (es. assets/logo-bcube.png) -->
+    <img src="logo.png" alt="Logo Aziendale" class="logo">
+
     <h2>Timbro Presenze</h2>
     <p class="subtitle">Registrazione ingresso / uscita</p>
 
@@ -274,7 +276,6 @@
         <div class="password-wrapper">
           <input type="password" id="pin" name="pin" placeholder="PIN numerico">
           <button type="button" class="toggle-password" id="togglePin" aria-label="Mostra/Nascondi PIN">
-            <!-- icona occhio inline SVG -->
             <svg id="eyeIcon" viewBox="0 0 24 24">
               <path d="M12 5C7 5 2.73 8.11 1 12c1.73 3.89 6 7 11 7s9.27-3.11 11-7c-1.73-3.89-6-7-11-7zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 .002 6.002A3 3 0 0 0 12 9z"/>
             </svg>
@@ -300,7 +301,7 @@
   </div>
 
   <script>
-    // 🔗 Webhook Apps Script (come da tua richiesta: sempre inclusa nel codice)
+    // 🔗 Webhook Apps Script (tua URL fissa)
     const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbw3UYl68d61ym-mPVrgh1QyphQaaWotOSgrczzNGRS3KD9euIpDg-nv60Ns06vRCfLx/exec";
 
     document.addEventListener("DOMContentLoaded", () => {
@@ -324,23 +325,25 @@
       let sedeLoaded = false;
 
       // ========================
-      // Gestione modalità QR
+      // Gestione modalità QR (IN/OUT/standard)
       // ========================
       function applyMode(mode) {
         currentMode = mode;
 
-        // reset stile
+        // reset stile + visibilità
+        btnIn.style.display = "inline-flex";
+        btnOut.style.display = "inline-flex";
         btnIn.classList.remove("secondary");
         btnOut.classList.remove("secondary");
-        btnIn.disabled = false;
-        btnOut.disabled = false;
 
         if (mode === "IN") {
           modeLabelEl.innerHTML = 'Modalità QR: <span>Entrata attiva</span>';
-          btnOut.classList.add("secondary");
+          // mostro SOLO Entrata
+          btnOut.style.display = "none";
         } else if (mode === "OUT") {
           modeLabelEl.innerHTML = 'Modalità QR: <span>Uscita attiva</span>';
-          btnIn.classList.add("secondary");
+          // mostro SOLO Uscita
+          btnIn.style.display = "none";
         } else {
           modeLabelEl.textContent = "Modalità standard (scelta manuale)";
         }
@@ -354,9 +357,8 @@
       togglePinBtn.addEventListener("click", () => {
         if (pinInput.type === "password") {
           pinInput.type = "text";
-          // icona "occhio barrato" molto semplice
-          eyeIcon.setAttribute("d", "");
-          eyeIcon.innerHTML = '<path d="M12 5C7 5 2.73 8.11 1 12c.64 1.44 1.64 2.76 2.88 3.86L3 16.74 4.26 18l1.9-1.9A11.5 11.5 0 0 0 12 19c5 0 9.27-3.11 11-7-.73-1.64-2-3.16-3.62-4.29L19 9.09A6.97 6.97 0 0 1 19.94 12c-1.39 2.82-4.21 5-7.94 5-1.2 0-2.34-.22-3.38-.62l1.76-1.76A3 3 0 0 0 14.5 12.5L16.75 10.25 18 9l-1.01-1.01L15 10.0 14.0 11l-1.91 1.91A3 3 0 0 0 9 11a3 3 0 0 0-.5 0L7.08 9.58A4.99 4.99 0 0 1 12 7c.69 0 1.35.13 1.97.36L15.45 5.9A7.02 7.02 0 0 0 12 5z"/>';
+          // icona "occhio barrato" semplice
+          eyeIcon.innerHTML = '<path d="M12 5C7 5 2.73 8.11 1 12c.37.83.86 1.61 1.45 2.33L3 15.78 4.22 17l1.9-1.9A11.5 11.5 0 0 0 12 19c5 0 9.27-3.11 11-7-.64-1.44-1.64-2.76-2.88-3.86L19.78 9 18.56 10.22l-1.4 1.4A4.98 4.98 0 0 1 12 17a4.96 4.96 0 0 1-3.54-1.46L6.22 15.3 5 14.08l1.02-1.02A6.96 6.96 0 0 1 5.05 9.0L6.5 7.55A8 8 0 0 1 12 7c.69 0 1.35.09 1.97.26L15.45 5.8A9.87 9.87 0 0 0 12 5z"/>';
         } else {
           pinInput.type = "password";
           eyeIcon.innerHTML = '<path d="M12 5C7 5 2.73 8.11 1 12c1.73 3.89 6 7 11 7s9.27-3.11 11-7c-1.73-3.89-6-7-11-7zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 .002 6.002A3 3 0 0 0 12 9z"/>';
@@ -366,8 +368,21 @@
       // ========================
       // Caricamento info sede
       // ========================
+      function disableButtons(flag) {
+        btnIn.disabled = flag;
+        btnOut.disabled = flag;
+      }
+
+      function setStatus(msg, isError) {
+        statusEl.textContent = msg || "";
+        statusEl.classList.remove("ok", "err");
+        if (!msg) return;
+        statusEl.classList.add(isError ? "err" : "ok");
+      }
+
       if (!locParam) {
         setStatus("QR non valido: parametro 'loc' mancante.", true);
+        sedeNameEl.textContent = "Sede: errore";
         disableButtons(true);
       } else {
         sedeNameEl.textContent = "Sede: caricamento…";
@@ -392,18 +407,6 @@
             sedeNameEl.textContent = "Sede: errore rete";
             disableButtons(true);
           });
-      }
-
-      function disableButtons(flag) {
-        btnIn.disabled = flag;
-        btnOut.disabled = flag;
-      }
-
-      function setStatus(msg, isError) {
-        statusEl.textContent = msg || "";
-        statusEl.classList.remove("ok", "err");
-        if (!msg) return;
-        statusEl.classList.add(isError ? "err" : "ok");
       }
 
       // ========================
@@ -465,7 +468,8 @@
           return;
         }
 
-        // se siamo in modalità dedicata, blocca il tipo sbagliato
+        // in teoria il pulsante "sbagliato" non è visibile in modalità dedicata,
+        // ma teniamo il check per sicurezza
         if (currentMode === "IN" && type === "OUT") {
           setStatus("Questo QR è solo per l'entrata.", true);
           return;
@@ -522,7 +526,6 @@
           }
 
           setStatus(msg, false);
-          // facoltativo: pulisci PIN
           pinInput.value = "";
         } catch (err) {
           setStatus("Errore invio: " + err.message, true);
