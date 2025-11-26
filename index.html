@@ -249,7 +249,6 @@
 <body>
   <div class="login-container">
     <!-- LOGO -->
-    <!-- Assicurati che il file esista: img/logo.png -->
     <img src="img/logo.png" alt="Logo Aziendale" class="logo">
 
     <h2>Timbro Presenze</h2>
@@ -290,12 +289,12 @@
     </div>
 
     <div class="footer-tech">
-      QR: <code>loc</code> / <code>mode</code> &nbsp;·&nbsp; v2 UI
+      QR: <code>loc</code> / <code>mode</code> · v2 UI
     </div>
   </div>
 
   <script>
-    // 🔗 Webhook Apps Script – FISSA (quella che mi hai dato)
+    // 🔗 Webhook Apps Script – FISSA
     const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbw3UYl68d61ym-mPVrgh1QyphQaaWotOSgrczzNGRS3KD9euIpDg-nv60Ns06vRCfLx/exec";
 
     document.addEventListener("DOMContentLoaded", () => {
@@ -315,12 +314,9 @@
       const togglePinBtn = document.getElementById("togglePin");
       const eyeIcon = document.getElementById("eyeIcon");
 
-      let currentMode = null; // null / "IN" / "OUT"
+      let currentMode = null;
       let sedeLoaded = false;
 
-      // ========================
-      // Utility
-      // ========================
       function disableButtons(flag) {
         if (btnIn) btnIn.disabled = flag;
         if (btnOut) btnOut.disabled = flag;
@@ -333,13 +329,16 @@
         statusEl.classList.add(isError ? "err" : "ok");
       }
 
-      // ========================
-      // Modalità IN/OUT da QR
-      // ========================
+      // 🚨 Se la pagina è aperta da file:// blocchiamo subito
+      if (location.protocol === "file:") {
+        setStatus("La pagina è aperta in locale (file://).\nPer timbrare devi usarla da un indirizzo https (es. GitHub Pages o Netlify).", true);
+        disableButtons(true);
+        return;
+      }
+
       function applyMode(mode) {
         currentMode = mode;
 
-        // reset visibilità
         btnIn.style.display = "inline-flex";
         btnOut.style.display = "inline-flex";
 
@@ -356,9 +355,6 @@
 
       applyMode(modeParam === "IN" || modeParam === "OUT" ? modeParam : null);
 
-      // ========================
-      // Occhietto PIN
-      // ========================
       togglePinBtn.addEventListener("click", () => {
         if (pinInput.type === "password") {
           pinInput.type = "text";
@@ -491,7 +487,8 @@
 
           const resp = await fetch(WEBAPP_URL, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            // 👇 niente più application/json: usiamo text/plain per evitare preflight CORS
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
             body: JSON.stringify(payload)
           });
 
