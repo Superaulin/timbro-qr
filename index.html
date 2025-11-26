@@ -34,7 +34,7 @@
     }
 
     .logo {
-      width: 140px;
+      width: 200px;
       height: auto;
       object-fit: contain;
       margin-bottom: 12px;
@@ -248,7 +248,6 @@
 </head>
 <body>
   <div class="login-container">
-    <!-- LOGO -->
     <img src="img/logo.png" alt="Logo Aziendale" class="logo">
 
     <h2>Timbro Presenze</h2>
@@ -267,7 +266,9 @@
       <div class="input-group">
         <label for="pin">PIN</label>
         <div class="password-wrapper">
-          <input type="password" id="pin" name="pin" placeholder="PIN numerico">
+          <!-- QUI la modifica: inputmode="numeric" pattern="[0-9]*" -->
+          <input type="password" id="pin" name="pin" placeholder="PIN numerico"
+                 inputmode="numeric" pattern="[0-9]*">
           <button type="button" class="toggle-password" id="togglePin" aria-label="Mostra/Nascondi PIN">
             <svg id="eyeIcon" viewBox="0 0 24 24">
               <path d="M12 5C7 5 2.73 8.11 1 12c1.73 3.89 6 7 11 7s9.27-3.11 11-7c-1.73-3.89-6-7-11-7zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 .002 6.002A3 3 0 0 0 12 9z"/>
@@ -294,7 +295,6 @@
   </div>
 
   <script>
-    // 🔗 Webhook Apps Script – FISSA
     const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbw3UYl68d61ym-mPVrgh1QyphQaaWotOSgrczzNGRS3KD9euIpDg-nv60Ns06vRCfLx/exec";
 
     document.addEventListener("DOMContentLoaded", () => {
@@ -329,7 +329,6 @@
         statusEl.classList.add(isError ? "err" : "ok");
       }
 
-      // 🚨 Se la pagina è aperta da file:// blocchiamo subito
       if (location.protocol === "file:") {
         setStatus("La pagina è aperta in locale (file://).\nPer timbrare devi usarla da un indirizzo https (es. GitHub Pages o Netlify).", true);
         disableButtons(true);
@@ -365,9 +364,6 @@
         }
       });
 
-      // ========================
-      // Caricamento info sede
-      // ========================
       if (!locParam) {
         setStatus("QR non valido: parametro 'loc' mancante.", true);
         sedeNameEl.textContent = "Sede: errore";
@@ -397,9 +393,6 @@
           });
       }
 
-      // ========================
-      // Geolocalizzazione
-      // ========================
       function getPosition() {
         if (!navigator.geolocation) {
           return Promise.resolve({
@@ -434,9 +427,6 @@
         });
       }
 
-      // ========================
-      // Invio timbro
-      // ========================
       async function sendTimbro(type) {
         const employeeId = (employeeIdInput.value || "").trim();
         const pin = (pinInput.value || "").trim();
@@ -487,7 +477,6 @@
 
           const resp = await fetch(WEBAPP_URL, {
             method: "POST",
-            // 👇 niente più application/json: usiamo text/plain per evitare preflight CORS
             headers: { "Content-Type": "text/plain;charset=utf-8" },
             body: JSON.stringify(payload)
           });
