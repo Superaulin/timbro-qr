@@ -1,0 +1,262 @@
+/* ============================================================
+ * client.css – Tema cliente per Timbro + Sedi
+ * Qui cambi colori e stile una volta sola per tutto il cliente
+ * ============================================================ */
+
+/* 🎨 PALETTE CLIENTE – BASTA CAMBIARE QUESTI VALORI */
+:root {
+  --bg-gradient-start: #0b1f3b;  /* colore alto sfondo */
+  --bg-gradient-end:   #2980b9;  /* colore basso sfondo */
+  --card-bg:           #ffffff;
+  --card-radius:       18px;
+  --card-shadow:       0 18px 45px rgba(15, 23, 42, 0.35);
+
+  --accent:            #1f7ae0;
+  --accent-soft:       #e5f0ff;
+  --danger:            #dc2626;
+  --text-main:         #111827;
+  --text-muted:        #6b7280;
+
+  --border-subtle:     rgba(148, 163, 184, 0.35);
+}
+
+/* ===================== LAYOUT GENERALE ===================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+               Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: radial-gradient(circle at top left,
+              rgba(148, 163, 184, 0.25) 0,
+              transparent 55%),
+              linear-gradient(160deg,
+              var(--bg-gradient-start) 0%,
+              var(--bg-gradient-end) 75%);
+  color: var(--text-main);
+}
+
+/* Contenitore principale “centrato” */
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+/* Card principale (login, sedi, ecc.) */
+.app-card {
+  background: var(--card-bg);
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
+  padding: 20px 22px;
+  width: 100%;
+  max-width: 420px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+/* Variante più larga (per lista sedi) */
+.app-card-wide {
+  max-width: 680px;
+}
+
+/* Header dentro la card (logo + titolo) */
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+/* LOGO */
+.logo-wrapper {
+  flex-shrink: 0;
+}
+
+.logo {
+  display: block;
+  max-width: 72px;    /* 👉 cambia qui se vuoi logo più grande/piccolo */
+  max-height: 72px;
+}
+
+/* Testo header */
+.header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.app-title {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.app-subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* Piccole etichette / testo guida */
+.helper-text {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+/* Divider sottile */
+.app-divider {
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(148, 163, 184, 0.5),
+    transparent
+  );
+  margin: 10px 0 12px;
+}
+
+/* Link back tipo "← Torna alle sedi" */
+.link-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--accent);
+  text-decoration: none;
+  margin-bottom: 8px;
+}
+
+.link-back:hover {
+  text-decoration: underline;
+}
+
+/* ===================== BOTTONI GENERICI ===================== */
+
+.btn {
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: transform 0.05s ease, box-shadow 0.1s ease, background 0.1s ease;
+}
+
+.btn:active {
+  transform: translateY(1px);
+  box-shadow: none;
+}
+
+/* Primario (blu) */
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 10px 25px rgba(37, 99, 235, 0.35);
+}
+
+.btn-primary:hover {
+  background: #1557b0;
+}
+
+/* Secondario (grigio chiaro) */
+.btn-secondary {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.btn-secondary:hover {
+  background: #d1d5db;
+}
+
+/* Danger (rosso) – per OUT o azioni critiche */
+.btn-danger {
+  background: var(--danger);
+  color: #fff;
+  box-shadow: 0 10px 25px rgba(220, 38, 38, 0.35);
+}
+
+.btn-danger:hover {
+  background: #b91c1c;
+}
+
+/* ===================== LISTA SEDI (sedi.html) ===================== */
+
+.sedi-section {
+  margin-top: 6px;
+}
+
+/* Titolo gruppo sedi (es. città) */
+.sedi-group-title {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-muted);
+  margin: 16px 0 8px;
+}
+
+/* Griglia card sedi */
+.sedi-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+@media (min-width: 640px) {
+  .sedi-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Card singola sede */
+.sede-card {
+  border-radius: 12px;
+  border: 1px solid var(--border-subtle);
+  padding: 10px 11px;
+  background: linear-gradient(
+    145deg,
+    #ffffff,
+    rgba(226, 232, 240, 0.65)
+  );
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Nome sede */
+.sede-title {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* Indirizzo */
+.sede-addr {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* Pulsante "Apri timbro" dentro card sede */
+.sede-actions {
+  margin-top: 4px;
+}
+
+/* ===================== UTILITY ===================== */
+
+.text-right {
+  text-align: right;
+}
+
+.mt-4 { margin-top: 4px; }
+.mt-8 { margin-top: 8px; }
+.mt-12 { margin-top: 12px; }
