@@ -4,15 +4,100 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Timbro Presenze</title>
-
-  <!-- Tema cliente condiviso con sedi.html -->
-  <link rel="stylesheet" href="client.css">
-
   <style>
-    /* Stili specifici solo per il form di timbratura */
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
 
-    .form-body {
-      margin-top: 8px;
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #1e3665, #008553);
+      padding: 16px;
+    }
+
+    .login-container {
+      background: white;
+      padding: 24px 22px 20px;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    .logo {
+      width: 200px;
+      height: auto;
+      object-fit: contain;
+      margin-bottom: 12px;
+    }
+
+    /* LINK "TORNA ALLA LISTA SEDI" */
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      color: #008553;
+      text-decoration: none;
+      margin-bottom: 8px;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    .back-link::before {
+      content: "←";
+      font-size: 13px;
+    }
+
+    h2 {
+      font-size: 22px;
+      margin-bottom: 4px;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: #555;
+      margin-bottom: 4px;
+    }
+
+    .sede-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #1e3665;
+      margin-top: 4px;
+    }
+
+    .sede-indirizzo {
+      font-size: 11px;
+      color: #666;
+      margin-bottom: 6px;
+      min-height: 14px;
+    }
+
+    .mode-label {
+      font-size: 11px;
+      margin-bottom: 10px;
+      color: #444;
+    }
+
+    .mode-label span {
+      font-weight: 600;
+    }
+
+    form {
+      text-align: left;
+      margin-top: 6px;
     }
 
     .input-group {
@@ -31,27 +116,25 @@
     input[type="number"] {
       width: 100%;
       padding: 10px;
-      border-radius: 8px;
-      border: 1px solid rgba(148, 163, 184, 0.8);
+      border-radius: 6px;
+      border: 1px solid #ccc;
       font-size: 14px;
       outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s, background 0.15s;
-      background: #ffffff;
+      transition: border-color 0.2s, box-shadow 0.2s;
     }
 
     input:focus {
-      border-color: #1f2937;
-      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
-      background: #f9fafb;
+      border-color: #1e3665;
+      box-shadow: 0 0 0 2px rgba(30,54,101,0.15);
     }
 
     .password-wrapper {
       display: flex;
       align-items: center;
-      border-radius: 8px;
-      border: 1px solid rgba(148, 163, 184, 0.8);
-      background: #f9fafb;
+      border-radius: 6px;
+      border: 1px solid #ccc;
       padding-right: 4px;
+      background: #f9f9f9;
     }
 
     .password-wrapper input {
@@ -64,7 +147,6 @@
     .password-wrapper input:focus {
       border: none;
       box-shadow: none;
-      background: transparent;
     }
 
     .toggle-password {
@@ -80,17 +162,63 @@
     .toggle-password svg {
       width: 18px;
       height: 18px;
-      fill: #6b7280;
+      fill: #555;
     }
 
     .toggle-password:hover svg {
-      fill: #111827;
+      fill: #000;
     }
 
     .buttons-row {
       display: flex;
       gap: 8px;
       margin-top: 8px;
+    }
+
+    .login-button {
+      flex: 1;
+      padding: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.1s, box-shadow 0.1s, background-color 0.15s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .login-button:disabled {
+      opacity: 0.6;
+      cursor: default;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .login-button:active:not(:disabled) {
+      transform: translateY(1px);
+      box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+    }
+
+    .btn-in {
+      background: #008553;
+      color: white;
+      box-shadow: 0 4px 8px rgba(0,133,83,0.35);
+    }
+
+    .btn-in:hover:not(:disabled) {
+      background: #006b42;
+    }
+
+    .btn-out {
+      background: #c62828;
+      color: white;
+      box-shadow: 0 4px 8px rgba(198,40,40,0.35);
+    }
+
+    .btn-out:hover:not(:disabled) {
+      background: #a31818;
     }
 
     .status {
@@ -102,16 +230,16 @@
     }
 
     .status.ok {
-      color: #15803d;
+      color: #006b42;
     }
 
     .status.err {
-      color: #b91c1c;
+      color: #b71c1c;
     }
 
     .gps-note {
       font-size: 10px;
-      color: #6b7280;
+      color: #777;
       margin-top: 4px;
       text-align: left;
     }
@@ -119,121 +247,74 @@
     .footer-tech {
       margin-top: 8px;
       font-size: 9px;
-      color: #9ca3af;
+      color: #999;
       text-align: right;
     }
 
     .footer-tech code {
       font-size: 9px;
-      background: #f3f4f6;
+      background: #f0f0f0;
       padding: 1px 3px;
       border-radius: 3px;
     }
 
-    .sede-label {
-      font-size: 13px;
-      font-weight: 600;
-      color: #111827;
-      margin-top: 4px;
-    }
-
-    .sede-indirizzo {
-      font-size: 11px;
-      color: #6b7280;
-      margin-bottom: 4px;
-      min-height: 14px;
-    }
-
-    .mode-label {
-      font-size: 11px;
-      margin-bottom: 8px;
-      color: #4b5563;
-    }
-
-    .mode-label span {
-      font-weight: 600;
-    }
-
     @media (max-width: 420px) {
-      .app-card {
+      .login-container {
         padding: 18px 16px 16px;
       }
+      h2 { font-size: 20px; }
     }
   </style>
 </head>
 <body>
-  <div class="app-shell">
-    <div class="app-card">
+  <div class="login-container">
+    <img src="img/logo.png" alt="Logo Aziendale" class="logo">
 
-      <!-- HEADER con logo + titolo -->
-      <div class="app-header">
-        <div class="logo-wrapper">
-          <img src="img/logo.png" alt="Logo Aziendale" class="logo">
-        </div>
-        <div class="header-text">
-          <div class="app-title">Timbro Presenze</div>
-          <div class="app-subtitle">
-            Registrazione ingresso / uscita per sede selezionata.
-          </div>
+    <!-- LINK ALLA LISTA SEDI -->
+    <div style="text-align:left; margin-bottom:6px;">
+      <a href="sedi.html" class="back-link">Torna alla lista sedi</a>
+    </div>
+
+    <h2>Timbro Presenze</h2>
+    <p class="subtitle">Registrazione ingresso / uscita</p>
+
+    <p class="sede-label" id="sedeName">Sede: …</p>
+    <p class="sede-indirizzo" id="sedeAddress"></p>
+    <p class="mode-label" id="modeLabel">Modalità standard (scelta manuale)</p>
+
+    <form id="timbroForm" autocomplete="off">
+      <div class="input-group">
+        <label for="employeeId">ID dipendente</label>
+        <input type="text" id="employeeId" name="employeeId" placeholder="Es. 1001" inputmode="numeric">
+      </div>
+
+      <div class="input-group">
+        <label for="pin">PIN</label>
+        <div class="password-wrapper">
+          <input type="password" id="pin" name="pin" placeholder="PIN numerico"
+                 inputmode="numeric" pattern="[0-9]*">
+          <button type="button" class="toggle-password" id="togglePin" aria-label="Mostra/Nascondi PIN">
+            <svg id="eyeIcon" viewBox="0 0 24 24">
+              <path d="M12 5C7 5 2.73 8.11 1 12c1.73 3.89 6 7 11 7s9.27-3.11 11-7c-1.73-3.89-6-7-11-7zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 .002 6.002A3 3 0 0 0 12 9z"/>
+            </svg>
+          </button>
         </div>
       </div>
 
-      <!-- Link back alla lista sedi -->
-      <a href="sedi.html" class="link-back">
-        ← Torna alla lista sedi
-      </a>
-
-      <div class="app-divider"></div>
-
-      <!-- Info sede + modalità -->
-      <p class="sede-label" id="sedeName">Sede: …</p>
-      <p class="sede-indirizzo" id="sedeAddress"></p>
-      <p class="mode-label" id="modeLabel">Modalità standard (scelta manuale)</p>
-
-      <!-- FORM TIMBRO -->
-      <form id="timbroForm" autocomplete="off" class="form-body">
-        <div class="input-group">
-          <label for="employeeId">ID dipendente</label>
-          <input type="text" id="employeeId" name="employeeId"
-                 placeholder="Es. 1001" inputmode="numeric">
-        </div>
-
-        <div class="input-group">
-          <label for="pin">PIN</label>
-          <div class="password-wrapper">
-            <input type="password"
-                   id="pin"
-                   name="pin"
-                   placeholder="PIN numerico"
-                   inputmode="numeric"
-                   pattern="[0-9]*">
-            <button type="button"
-                    class="toggle-password"
-                    id="togglePin"
-                    aria-label="Mostra/Nascondi PIN">
-              <svg id="eyeIcon" viewBox="0 0 24 24">
-                <path d="M12 5C7 5 2.73 8.11 1 12c1.73 3.89 6 7 11 7s9.27-3.11 11-7c-1.73-3.89-6-7-11-7zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 .002 6.002A3 3 0 0 0 12 9z"/>
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        <div class="buttons-row">
-          <button type="button" class="btn btn-primary" id="btnIn">Entrata</button>
-          <button type="button" class="btn btn-danger" id="btnOut">Uscita</button>
-        </div>
-      </form>
-
-      <div class="status" id="statusMsg"></div>
-
-      <div class="gps-note">
-        La posizione viene usata solo per verificare che il timbro avvenga in sede.<br>
-        Se neghi il GPS, il timbro viene registrato ma marcato come anomalia.
+      <div class="buttons-row">
+        <button type="button" class="login-button btn-in" id="btnIn">Entrata</button>
+        <button type="button" class="login-button btn-out" id="btnOut">Uscita</button>
       </div>
+    </form>
 
-      <div class="footer-tech">
-        QR: <code>loc</code> / <code>mode</code> · v2 UI
-      </div>
+    <div class="status" id="statusMsg"></div>
+    <div class="gps-note">
+      La posizione viene usata solo per verificare che il timbro avvenga in sede.<br>
+      Se neghi il GPS, il timbro viene registrato ma marcato come anomalia.
+    </div>
+
+    <div class="footer-tech">
+      QR: <code>loc</code> / <code>mode</code> · v2 UI
     </div>
   </div>
 
@@ -273,7 +354,7 @@
       }
 
       if (location.protocol === "file:") {
-        setStatus("La pagina è aperta in locale (file://).\nPer timbrare devi usarla da un indirizzo https (es. GitHub Pages, Netlify, ecc.).", true);
+        setStatus("La pagina è aperta in locale (file://).\nPer timbrare devi usarla da un indirizzo https (es. GitHub Pages o Netlify).", true);
         disableButtons(true);
         return;
       }
