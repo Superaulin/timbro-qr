@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Sedi – Timbro Facile</title>
+
+<style>
+    body {
+        font-family: system-ui, sans-serif;
+        margin: 0; padding: 16px;
+        background: #f3f5f7;
+    }
+    h1 {
+        margin: 0 0 10px;
+        font-size: 22px;
+        font-weight: 800;
+    }
+    .wrap {
+        margin-top: 20px;
+        display: grid;
+        gap: 14px;
+    }
+    .card {
+        background: #fff;
+        padding: 14px;
+        border-radius: 12px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        border: 1px solid #eee;
+    }
+    .title {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+    .addr {
+        font-size: 14px;
+        margin-bottom: 10px;
+        opacity: .8;
+    }
+    .btn {
+        background: #1f7ae0;
+        color: #fff;
+        border: none;
+        padding: 10px 14px;
+        border-radius: 8px;
+        font-weight: 700;
+        cursor: pointer;
+        width: 100%;
+        text-align: center;
+    }
+    .btn:hover {
+        background: #1662b6;
+    }
+</style>
+
+</head>
+<body>
+<h1>Le tue sedi</h1>
+<div id="wrap" class="wrap">Caricamento sedi…</div>
+
+<script>
+// =====================================================================
+// CONFIGURAZIONE
+// =====================================================================
+
+// 🔥 METTI QUI LA TUA WEBHOOK (DEFINITIVA)
+const WEBHOOK = "https://script.google.com/macros/s/AKfycbw3UYl68d61ym-mPVrgh1QyphQaaWotOSgrczzNGRS3KD9euIpDg-nv60Ns06vRCfLx/exec?action=sedi";
+
+// Directory della pagina timbro (stessa repo)
+const TIMBRO_PAGE = "index.html";
+
+
+// =====================================================================
+// CARICAMENTO SEDI
+// =====================================================================
+async function loadSedi() {
+    try {
+        const res = await fetch(WEBHOOK);
+        const data = await res.json();
+
+        if (!data.ok) {
+            document.getElementById("wrap").textContent = "Errore nel caricare le sedi.";
+            return;
+        }
+
+        renderSedi(data.sedi);
+
+    } catch (err) {
+        console.error(err);
+        document.getElementById("wrap").textContent = "Errore di connessione.";
+    }
+}
+
+
+// =====================================================================
+// RENDERING UI
+// =====================================================================
+function renderSedi(sedi) {
+    const wrap = document.getElementById("wrap");
+    wrap.innerHTML = "";
+
+    if (!sedi.length) {
+        wrap.textContent = "Nessuna sede configurata.";
+        return;
+    }
+
+    sedi.forEach(s => {
+        const card = document.createElement("div");
+        card.className = "card";
+
+        card.innerHTML = `
+            <div class="title">${escapeHtml(s.nomeSede)}</div>
+            <div class="addr">${escapeHtml(s.indirizzo || "Indirizzo non disponibile")}</div>
+        `;
+
+        const btn = document.createElement("button");
+        btn.className = "btn";
+        
+        btn.textContent = "Apri timbro";
+        btn.onclick = () => {
+            const url = `${TIMBRO_PAGE}?loc=${encodeURIComponent(s.locationId)}`;
+            window.location.href = url;
+        };
+
+        card.appendChild(btn);
+        wrap.appendChild(card);
+    });
+}
+
+
+// =====================================================================
+// UTILITY
+// =====================================================================
+function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, m => ({
+        "&":"&amp;", "<":"&lt;", ">":"&gt;",
+        '"':"&quot;", "'":"&#39;"
+    }[m]));
+}
+
+
+// =====================================================================
+// AVVIO
+// =====================================================================
+loadSedi();
+
+</script>
+</body>
+</html>
