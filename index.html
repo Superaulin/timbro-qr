@@ -37,28 +37,27 @@
       width: 200px;
       height: auto;
       object-fit: contain;
-      margin-bottom: 6px;
+      margin-bottom: 12px;
     }
 
-    /* LINK "TORNA ALLA LISTA SEDI" CENTRATO SOTTO IL LOGO */
+    /* LINK "TORNA ALLA LISTA SEDI" */
     .back-link {
       display: inline-flex;
       align-items: center;
-      justify-content: center;
       gap: 4px;
       font-size: 12px;
       color: #008553;
       text-decoration: none;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
     }
 
     .back-link::before {
       content: "←";
       font-size: 13px;
-    }
-
-    .back-link:hover {
-      text-decoration: underline;
     }
 
     h2 {
@@ -82,12 +81,13 @@
     .sede-indirizzo {
       font-size: 11px;
       color: #666;
+      margin-bottom: 6px;
       min-height: 14px;
     }
 
     .mode-label {
       font-size: 11px;
-      margin: 10px 0;
+      margin-bottom: 10px;
       color: #444;
     }
 
@@ -270,14 +270,20 @@
   <div class="login-container">
     <img src="img/logo.png" alt="Logo Aziendale" class="logo">
 
-    <!-- Link centrato sotto il logo -->
-    <a href="sedi.html" class="back-link">Torna alla lista sedi</a>
+    <!-- LINK ALLA LISTA SEDI -->
+    <div style="text-align:center; margin-bottom:6px;">
+      <a href="sedi.html" class="back-link">Torna alla lista sedi</a>
+    </div>
 
     <h2>Timbro Presenze</h2>
     <p class="subtitle">Registrazione ingresso / uscita</p>
 
     <p class="sede-label" id="sedeName">Sede: …</p>
     <p class="sede-indirizzo" id="sedeAddress"></p>
+
+    <!-- LINK ALLA LISTA SEDI, sotto nome/indirizzo -->
+    <a href="sedi.html" class="back-link">Torna alla lista sedi</a>
+
     <p class="mode-label" id="modeLabel">Modalità standard (scelta manuale)</p>
 
     <form id="timbroForm" autocomplete="off">
