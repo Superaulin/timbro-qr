@@ -37,27 +37,28 @@
       width: 200px;
       height: auto;
       object-fit: contain;
-      margin-bottom: 12px;
+      margin-bottom: 6px;
     }
 
-    /* LINK "TORNA ALLA LISTA SEDI" */
+    /* LINK "TORNA ALLA LISTA SEDI" CENTRATO SOTTO IL LOGO */
     .back-link {
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 4px;
       font-size: 12px;
       color: #008553;
       text-decoration: none;
-      margin: 4px 0 8px;
-    }
-
-    .back-link:hover {
-      text-decoration: underline;
+      margin-bottom: 10px;
     }
 
     .back-link::before {
       content: "←";
       font-size: 13px;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
     }
 
     h2 {
@@ -269,15 +270,14 @@
   <div class="login-container">
     <img src="img/logo.png" alt="Logo Aziendale" class="logo">
 
+    <!-- Link centrato sotto il logo -->
+    <a href="sedi.html" class="back-link">Torna alla lista sedi</a>
+
     <h2>Timbro Presenze</h2>
     <p class="subtitle">Registrazione ingresso / uscita</p>
 
     <p class="sede-label" id="sedeName">Sede: …</p>
     <p class="sede-indirizzo" id="sedeAddress"></p>
-
-    <!-- LINK ALLA LISTA SEDI, sotto nome/indirizzo -->
-    <a href="sedi.html" class="back-link">Torna alla lista sedi</a>
-
     <p class="mode-label" id="modeLabel">Modalità standard (scelta manuale)</p>
 
     <form id="timbroForm" autocomplete="off">
@@ -451,7 +451,7 @@
 
       async function sendTimbro(type) {
         const employeeId = (employeeIdInput.value || "").trim();
-        the pin = (pinInput.value || "").trim();
+        const pin = (pinInput.value || "").trim();
 
         if (!employeeId || !pin) {
           setStatus("Inserisci ID dipendente e PIN.", true);
