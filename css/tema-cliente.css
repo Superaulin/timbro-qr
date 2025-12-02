@@ -1,0 +1,14 @@
+/* css/tema-cliente.css – RAM Energy E&C */
+:root {
+  --bg-1: #0a2647;   /* blu scuro RAM */
+  --bg-2: #008553;   /* verde RAM */
+
+  --card-bg: #ffffff;
+
+  --btn-in-bg: #008553;
+  --btn-in-bg-hover: #006b42;
+  --btn-out-bg: #d62828;
+  --btn-out-bg-hover: #b11c1c;
+
+  --accent: #0a2647;
+}
