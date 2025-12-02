@@ -1,0 +1,28 @@
+/* css/tema-default.css
+   Tema neutro di base per Timbro-QR
+   Puoi usarlo per test, demo o come fallback.
+*/
+
+:root {
+  /* Background generale (gradiente) */
+  --bg-1: #1e3665;   /* blu scuro neutro */
+  --bg-2: #008553;   /* verde neutro */
+
+  /* Sfondo card */
+  --card-bg: #ffffff;
+
+  /* Pulsante ENTRATA */
+  --btn-in-bg: #008553;
+  --btn-in-bg-hover: #006b42;
+
+  /* Pulsante USCITA */
+  --btn-out-bg: #c62828;
+  --btn-out-bg-hover: #a31818;
+
+  /* Colore accent (titoli / etichette sede) */
+  --accent: #1e3665;
+
+  /* Testi */
+  --text-main: #222222;
+  --text-subtle: #555555;
+}
