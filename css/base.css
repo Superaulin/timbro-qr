@@ -10,7 +10,7 @@
   font-family: 'Poppins', sans-serif;
 }
 
-/* VARIABILI DI BASE (possono essere override dal tema-cliente.css) */
+/* fallback nel caso il tema non definisca le variabili */
 :root {
   --bg-1: #1e3665;
   --bg-2: #008553;
@@ -27,7 +27,7 @@
   --text-subtle: #555;
 }
 
-/* SFONDO GENERALE */
+/* SFONDO GENERALE (come vecchio index) */
 body {
   min-height: 100vh;
   display: flex;
@@ -37,151 +37,56 @@ body {
   background: linear-gradient(135deg, var(--bg-1), var(--bg-2));
 }
 
-/* CONTENITORE PAGINE (per centratura card sedi) */
-.page-container {
-  width: 100%;
-  max-width: 960px;
-  margin: 0 auto;
-}
-
-/* CARD GENERICA */
+/* CARD GENERICA – usata sia per TIMBRO che per SEDI */
 .card {
   background: var(--card-bg);
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
   padding: 24px 22px 20px;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
   width: 100%;
   max-width: 400px;
 }
 
-/* CONTENITORE TIMBRO */
+/* CONTENITORE TIMBRO (index) */
 .login-container {
   text-align: center;
 }
 
-/* LOGO PAGINA TIMBRO (usato anche da .logo per retrocompatibilità) */
-.logo-main,
-.logo {
+/* LOGO PAGINA TIMBRO – come vecchia versione */
+.logo-main {
   width: 200px;
   height: auto;
   object-fit: contain;
   margin-bottom: 12px;
 }
 
-/* LOGO PAGINA SEDI */
+/* LOGO PAGINA SEDI – più piccolo e allineato al testo */
 .logo-sedi {
   width: 140px;
   height: auto;
   object-fit: contain;
 }
 
-/* HEADER PAGINA SEDI (logo + testi) */
-.page-header {
+/* HEADER PAGINA SEDI (logo + titolo + testo) */
+.sedi-header {
   display: flex;
   align-items: center;
   gap: 16px;
   margin-bottom: 16px;
 }
 
-.page-title {
+.sedi-header-text h1 {
   font-size: 20px;
-  font-weight: 600;
-  color: #fff;
+  margin-bottom: 4px;
+  color: var(--text-main);
 }
 
-.page-subtitle {
+.sedi-header-text p {
   font-size: 13px;
-  color: #f0f0f0;
+  color: var(--text-subtle);
 }
 
-.app-divider {
-  height: 1px;
-  background: rgba(255, 255, 255, 0.2);
-  margin: 10px 0 14px;
-}
-
-/* TESTO DI AIUTO NELLA PAGINA SEDI */
-.helper-text {
-  font-size: 12px;
-  color: #f0f0f0;
-  margin-bottom: 18px;
-}
-
-/* SEZIONI DELLA PAGINA SEDI (gruppi sedi) */
-.sedi-section {
-  margin-bottom: 18px;
-}
-
-.sedi-group {
-  margin-bottom: 12px;
-}
-
-.sedi-group-title {
-  font-size: 13px;
-  font-weight: 600;
-  color: #f0f0f0;
-  margin-bottom: 6px;
-}
-
-/* GRIGLIA CARD SEDI */
-.sedi-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 10px;
-}
-
-/* CARD SINGOLA SEDE */
-.sede-card {
-  background: #ffffff;
-  border-radius: 10px;
-  padding: 10px 12px;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.18);
-}
-
-.sede-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: #222;
-  margin-bottom: 2px;
-}
-
-.sede-subtitle {
-  font-size: 12px;
-  color: #444;
-  margin-bottom: 2px;
-}
-
-.sede-meta {
-  font-size: 11px;
-  color: #777;
-  margin-bottom: 6px;
-}
-
-/* BOTTONE "APRI TIMBRO" NELLA CARD SEDE */
-.sede-open-btn {
-  display: inline-block;
-  padding: 5px 10px;
-  font-size: 12px;
-  font-weight: 500;
-  border-radius: 999px;
-  border: none;
-  cursor: pointer;
-  background: var(--btn-in-bg);
-  color: #fff;
-  text-decoration: none;
-  transition: background 0.15s, box-shadow 0.15s, transform 0.07s;
-}
-
-.sede-open-btn:hover {
-  background: var(--btn-in-bg-hover);
-}
-
-.sede-open-btn:active {
-  transform: translateY(1px);
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
-}
-
-/* VERSIONE MOBILE / RESPONSIVE */
+/* RESPONSIVE */
 @media (max-width: 600px) {
   body {
     align-items: flex-start;
@@ -192,12 +97,11 @@ body {
     padding: 18px 16px 16px;
   }
 
-  .logo-main,
-  .logo {
+  .logo-main {
     width: 180px;
   }
 
-  .page-header {
+  .sedi-header {
     flex-direction: column;
     align-items: center;
     text-align: center;
@@ -206,13 +110,9 @@ body {
   .logo-sedi {
     width: 160px;
   }
-
-  .sedi-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
 }
 
-/* TITOLI & TESTI GENERALI (pagina timbro) */
+/* TITOLI & TESTI GENERALI */
 h2 {
   font-size: 22px;
   margin-bottom: 4px;
@@ -249,7 +149,7 @@ h2 {
   font-weight: 600;
 }
 
-/* LINK BACK ALLA LISTA SEDI (usato in index.html) */
+/* LINK “torna alla lista sedi” */
 .back-link {
   font-size: 12px;
   color: var(--accent);
@@ -257,6 +157,7 @@ h2 {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  margin-bottom: 6px;
 }
 
 .back-link:hover {
@@ -294,7 +195,7 @@ input[type="number"] {
 
 input:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(30, 54, 101, 0.15);
+  box-shadow: 0 0 0 2px rgba(30,54,101,0.15);
 }
 
 /* WRAPPER PIN + OCCHIO */
@@ -369,13 +270,13 @@ input:focus {
 
 .login-button:active:not(:disabled) {
   transform: translateY(1px);
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 3px 6px rgba(0,0,0,0.2);
 }
 
 .btn-in {
   background: var(--btn-in-bg);
   color: #fff;
-  box-shadow: 0 4px 8px rgba(0, 133, 83, 0.35);
+  box-shadow: 0 4px 8px rgba(0,133,83,0.35);
 }
 
 .btn-in:hover:not(:disabled) {
@@ -385,14 +286,14 @@ input:focus {
 .btn-out {
   background: var(--btn-out-bg);
   color: #fff;
-  box-shadow: 0 4px 8px rgba(198, 40, 40, 0.35);
+  box-shadow: 0 4px 8px rgba(198,40,40,0.35);
 }
 
 .btn-out:hover:not(:disabled) {
   background: var(--btn-out-bg-hover);
 }
 
-/* STATUS & FOOTER */
+/* STATUS & FOOTER TIMBRO */
 .status {
   margin-top: 10px;
   font-size: 12px;
@@ -430,54 +331,59 @@ input:focus {
   border-radius: 3px;
 }
 
-/* -------------------------------------------------
-   LISTA SEDI – CARD
--------------------------------------------------- */
+/* ====== CARD SEDI ====== */
 
-.sedi-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-top: 4px;
+.sedi-section {
+  margin-top: 8px;
 }
 
+/* ogni sede in una “finta card” dentro la card principale */
 .sede-card {
   border-radius: 8px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid #eee;
   padding: 10px 12px;
+  margin-bottom: 10px;
   background: #fafafa;
+}
+
+.sede-card-body {
+  margin-bottom: 6px;
 }
 
 .sede-card-title {
   font-size: 14px;
   font-weight: 600;
+  margin-bottom: 2px;
   color: var(--text-main);
 }
 
 .sede-card-address {
   font-size: 12px;
   color: var(--text-subtle);
-  margin: 2px 0 8px;
 }
 
-.sede-card-btn {
+.sede-card-footer {
+  text-align: right;
+}
+
+.sede-card-button {
   display: inline-block;
-  padding: 6px 12px;
   font-size: 12px;
-  font-weight: 600;
+  padding: 5px 10px;
   border-radius: 999px;
   border: none;
-  cursor: pointer;
-  background: var(--btn-in-bg);
+  background: var(--accent);
   color: #fff;
-  transition: background 0.15s, transform 0.1s, box-shadow 0.1s;
+  text-decoration: none;
 }
 
-.sede-card-btn:hover {
-  background: var(--btn-in-bg-hover);
+.sede-card-button:hover {
+  opacity: 0.9;
 }
 
-.sede-card-btn:active {
-  transform: translateY(1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+/* messaggi di errore nella pagina sedi */
+.error-msg {
+  font-size: 12px;
+  color: #b71c1c;
+  margin-top: 4px;
 }
