@@ -10,7 +10,7 @@
   font-family: 'Poppins', sans-serif;
 }
 
-/* fallback nel caso il tema non definisca le variabili */
+/* VARIABILI DI BASE – override dal tema */
 :root {
   --bg-1: #1e3665;
   --bg-2: #008553;
@@ -27,7 +27,7 @@
   --text-subtle: #555;
 }
 
-/* SFONDO GENERALE (come vecchio index) */
+/* SFONDO GENERALE */
 body {
   min-height: 100vh;
   display: flex;
@@ -37,82 +37,68 @@ body {
   background: linear-gradient(135deg, var(--bg-1), var(--bg-2));
 }
 
-/* CARD GENERICA – usata sia per TIMBRO che per SEDI */
+/* pagina sedi: card un po' più in alto */
+body.page-sedi {
+  align-items: flex-start;
+}
+
+/* CARD GENERICA */
 .card {
   background: var(--card-bg);
-  padding: 24px 22px 20px;
   border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  padding: 24px 22px 20px;
   width: 100%;
   max-width: 400px;
 }
 
-/* CONTENITORE TIMBRO (index) */
+/* card più ampia per lista sedi */
+.card-sedi {
+  max-width: 720px;
+}
+
+/* TIMBRO */
 .login-container {
   text-align: center;
 }
 
-/* LOGO PAGINA TIMBRO – come vecchia versione */
+/* LOGO PAGINA TIMBRO */
 .logo-main {
   width: 200px;
   height: auto;
   object-fit: contain;
-  margin-bottom: 12px;
+  display: block;
+  margin: 0 auto 12px auto;
 }
 
-/* LOGO PAGINA SEDI – più piccolo e allineato al testo */
+/* LOGO PAGINA SEDI */
 .logo-sedi {
-  width: 140px;
+  width: 160px;
   height: auto;
   object-fit: contain;
 }
 
-/* HEADER PAGINA SEDI (logo + titolo + testo) */
-.sedi-header {
-  display: flex;
+/* LINK DI RITORNO */
+.back-link {
+  font-size: 12px;
+  color: var(--accent);
+  text-decoration: none;
+  display: inline-flex;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 16px;
+  gap: 4px;
 }
 
-.sedi-header-text h1 {
-  font-size: 20px;
-  margin-bottom: 4px;
-  color: var(--text-main);
+.back-link:hover {
+  text-decoration: underline;
 }
 
-.sedi-header-text p {
-  font-size: 13px;
-  color: var(--text-subtle);
+.back-link-center {
+  display: block;
+  text-align: center;
+  margin-bottom: 8px;
 }
 
-/* RESPONSIVE */
-@media (max-width: 600px) {
-  body {
-    align-items: flex-start;
-  }
-
-  .card {
-    margin-top: 24px;
-    padding: 18px 16px 16px;
-  }
-
-  .logo-main {
-    width: 180px;
-  }
-
-  .sedi-header {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-  }
-
-  .logo-sedi {
-    width: 160px;
-  }
-}
-
-/* TITOLI & TESTI GENERALI */
+/* TITOLI & TESTI TIMBRO */
 h2 {
   font-size: 22px;
   margin-bottom: 4px;
@@ -149,21 +135,6 @@ h2 {
   font-weight: 600;
 }
 
-/* LINK “torna alla lista sedi” */
-.back-link {
-  font-size: 12px;
-  color: var(--accent);
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  margin-bottom: 6px;
-}
-
-.back-link:hover {
-  text-decoration: underline;
-}
-
 /* FORM TIMBRO */
 form {
   text-align: left;
@@ -195,10 +166,10 @@ input[type="number"] {
 
 input:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(30,54,101,0.15);
+  box-shadow: 0 0 0 2px rgba(30, 54, 101, 0.15);
 }
 
-/* WRAPPER PIN + OCCHIO */
+/* PIN + OCCHIO */
 .password-wrapper {
   display: flex;
   align-items: center;
@@ -270,13 +241,13 @@ input:focus {
 
 .login-button:active:not(:disabled) {
   transform: translateY(1px);
-  box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
 }
 
 .btn-in {
   background: var(--btn-in-bg);
   color: #fff;
-  box-shadow: 0 4px 8px rgba(0,133,83,0.35);
+  box-shadow: 0 4px 8px rgba(0, 133, 83, 0.35);
 }
 
 .btn-in:hover:not(:disabled) {
@@ -286,7 +257,7 @@ input:focus {
 .btn-out {
   background: var(--btn-out-bg);
   color: #fff;
-  box-shadow: 0 4px 8px rgba(198,40,40,0.35);
+  box-shadow: 0 4px 8px rgba(198, 40, 40, 0.35);
 }
 
 .btn-out:hover:not(:disabled) {
@@ -331,59 +302,144 @@ input:focus {
   border-radius: 3px;
 }
 
-/* ====== CARD SEDI ====== */
+/* ---------- PAGINA SEDI ---------- */
 
-.sedi-section {
-  margin-top: 8px;
+.sedi-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
 }
 
-/* ogni sede in una “finta card” dentro la card principale */
-.sede-card {
-  border-radius: 8px;
-  border: 1px solid #eee;
-  padding: 10px 12px;
-  margin-bottom: 10px;
-  background: #fafafa;
-}
-
-.sede-card-body {
-  margin-bottom: 6px;
-}
-
-.sede-card-title {
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 2px;
+.sedi-header-text h1 {
+  font-size: 22px;
+  margin-bottom: 4px;
   color: var(--text-main);
 }
 
-.sede-card-address {
-  font-size: 12px;
+.sedi-header-text p {
+  font-size: 13px;
   color: var(--text-subtle);
 }
 
-.sede-card-footer {
-  text-align: right;
-}
-
-.sede-card-button {
-  display: inline-block;
-  font-size: 12px;
-  padding: 5px 10px;
-  border-radius: 999px;
+.sedi-divider {
   border: none;
-  background: var(--accent);
-  color: #fff;
-  text-decoration: none;
+  border-top: 1px solid #eee;
+  margin: 8px 0 16px 0;
 }
 
-.sede-card-button:hover {
-  opacity: 0.9;
+.sedi-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
-/* messaggi di errore nella pagina sedi */
-.error-msg {
+.sedi-loading,
+.sedi-error {
+  font-size: 13px;
+  color: var(--text-subtle);
+}
+
+.sedi-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sedi-group-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.sedi-group-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sedi-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  background: #fafafa;
+}
+
+.sedi-card-body {
+  flex: 1;
+}
+
+.sedi-name {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.sedi-address {
   font-size: 12px;
-  color: #b71c1c;
-  margin-top: 4px;
+  color: #555;
+}
+
+.sedi-meta {
+  font-size: 11px;
+  color: #777;
+  margin-top: 2px;
+}
+
+.sedi-btn {
+  flex-shrink: 0;
+  padding: 7px 12px;
+  border-radius: 6px;
+  border: none;
+  background: var(--btn-in-bg);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.sedi-btn:hover {
+  background: var(--btn-in-bg-hover);
+}
+
+/* RESPONSIVE */
+@media (max-width: 600px) {
+  body {
+    align-items: flex-start;
+  }
+
+  .card {
+    margin-top: 24px;
+    padding: 18px 16px 16px;
+  }
+
+  .logo-main {
+    width: 180px;
+  }
+
+  .sedi-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .logo-sedi {
+    width: 180px;
+  }
+
+  .sedi-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .sedi-btn {
+    align-self: stretch;
+    text-align: center;
+  }
 }
