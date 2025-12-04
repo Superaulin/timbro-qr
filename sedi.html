@@ -1,171 +1,199 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sedi – Timbro Presenze</title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Sedi – Timbro Facile</title>
 
+  <!--  CSS  -->
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/tema-cliente.css">
 </head>
-<body class="page-sedi">
-  <div class="card card-sedi">
-    <header class="sedi-header">
-      <img src="img/logo.png" alt="Logo Aziendale" class="logo-sedi">
-      <div class="sedi-header-text">
-        <h1>Seleziona la sede</h1>
-        <p>
-          Scegli la sede o il cantiere in cui ti trovi per aprire la pagina di timbratura.
-          Puoi salvare la pagina tra i preferiti per usarla più velocemente.
-        </p>
+<body>
+  <div class="app-shell">
+    <div class="app-card app-card-wide">
+
+      <!-- HEADER con logo + titolo -->
+      <div class="app-header">
+        <div class="logo-wrapper">
+          <img src="img/logo.png" alt="Logo Aziendale" class="logo">
+        </div>
+        <div class="header-text">
+          <div class="app-title">Seleziona la sede</div>
+          <div class="app-subtitle">
+            Scegli la sede o il cantiere in cui ti trovi per aprire la pagina di timbratura.
+          </div>
+        </div>
       </div>
-    </header>
 
-    <hr class="sedi-divider">
+      <div class="app-divider"></div>
 
-    <div id="sediContainer" class="sedi-list">
-      <p class="sedi-loading">Caricamento sedi in corso…</p>
+      <div class="helper-text">
+        Tocca la sede corretta per aprire la pagina di timbro. Puoi salvare la pagina tra i preferiti per usarla più velocemente.
+      </div>
+
+      <!-- QUI RENDERIZZIAMO I GRUPPI DI SEDI -->
+      <div id="sediContainer" class="sedi-section">
+        Caricamento sedi…
+      </div>
+
     </div>
   </div>
 
-  <script>
-    const WEBAPP_URL =
-      "https://script.google.com/macros/s/AKfycbxaiiuQovXIT44GjKBpPXMtMSDXAg51M1lCgi-fbFnGkBTqE5y4PnnaiBQC-HiYGpkC/exec";
-       
-    const TIMBRO_PAGE = "index.html";
+<script>
+// ===============================================
+// CONFIGURAZIONE
+// ===============================================
 
-    // ------------ utilità grouping -------------
-    function getGroupNameFromSede(sede) {
-      const regione   = (sede.regione  || "").trim();
-      const provincia = (sede.provincia || "").trim();
-      const comune    = (sede.comune   || "").trim();
+// Webhook Apps Script – endpoint "sedi"
+const WEBHOOK_SEDI =
+  "https://script.google.com/macros/s/AKfycbxaiiuQovXIT44GjKBpPXMtMSDXAg51M1lCgi-fbFnGkBTqE5y4PnnaiBQC-HiYGpkC/exec?action=sedi";
 
-      if (comune && provincia) return `${comune} (${provincia})`;
-      if (provincia && regione) return `${provincia} – ${regione}`;
-      if (provincia) return provincia;
-      if (regione) return regione;
+// Pagina di timbratura
+const TIMBRO_PAGE = "index.html";
 
-      // fallback vecchio: ultima parte dell'indirizzo
-      if (sede.indirizzo) {
-        const parts = sede.indirizzo.split(",");
-        return parts[parts.length - 1].trim() || "Altro";
-      }
-      return "Altro";
+
+// ===============================================
+// CARICAMENTO SEDI
+// ===============================================
+async function loadSedi() {
+  const container = document.getElementById("sediContainer");
+  try {
+    const res = await fetch(WEBHOOK_SEDI);
+    const data = await res.json();
+
+    if (!data.ok) {
+      container.textContent = "Errore nel caricare le sedi.";
+      return;
     }
 
-    function renderSedi(sedi) {
-      const container = document.getElementById("sediContainer");
-      container.innerHTML = "";
+    renderGroupedSedi(data.sedi || []);
 
-      if (!Array.isArray(sedi) || sedi.length === 0) {
-        container.innerHTML =
-          "<p>Nessuna sede configurata.</p>";
-        return;
-      }
+  } catch (err) {
+    console.error(err);
+    container.textContent = "Errore di connessione durante il caricamento delle sedi.";
+  }
+}
 
-      // raggruppa per gruppo (es. comune/provincia)
-      const groups = {};
-      for (const sede of sedi) {
-        if (!sede || !sede.locationId) continue;
-        if (sede.attivo === false || sede.attivo === "FALSE") continue;
 
-        const groupName = getGroupNameFromSede(sede);
-        if (!groups[groupName]) groups[groupName] = [];
-        groups[groupName].push(sede);
-      }
+// ===============================================
+// RAGGRUPPAMENTO SEDI (per comune / provincia)
+// ===============================================
+function getGroupLabel(sede) {
+  const comune = (sede.comune || "").trim();
+  const provincia = (sede.provincia || "").trim();
 
-      const groupNames = Object.keys(groups).sort((a, b) =>
-        a.localeCompare(b, "it", { sensitivity: "base" })
-      );
+  if (comune && provincia) return `${comune} (${provincia})`;
+  if (comune) return comune;
+  if (provincia) return provincia;
+  return "Altre sedi";
+}
 
-      for (const gName of groupNames) {
-        const g = groups[gName];
 
-        const groupEl = document.createElement("section");
-        groupEl.className = "sedi-group";
+// ===============================================
+// RENDERING GRUPPI + CARD SEDI
+// ===============================================
+function renderGroupedSedi(sedi) {
+  const container = document.getElementById("sediContainer");
+  container.innerHTML = "";
 
-        const h = document.createElement("h2");
-        h.className = "sedi-group-title";
-        h.textContent = gName;
-        groupEl.appendChild(h);
+  if (!sedi.length) {
+    container.textContent = "Nessuna sede configurata.";
+    return;
+  }
 
-        const listEl = document.createElement("div");
-        listEl.className = "sedi-group-list";
+  // 1) Costruisco una mappa: gruppo -> array sedi
+  const groups = {};
+  sedi.forEach(s => {
+    const g = getGroupLabel(s);
+    if (!groups[g]) groups[g] = [];
+    groups[g].push(s);
+  });
 
-        g.forEach(sede => {
-          const card = document.createElement("article");
-          card.className = "sedi-card";
+  // 2) Ordino alfabeticamente i gruppi
+  const groupNames = Object.keys(groups).sort((a, b) =>
+    a.localeCompare(b, "it")
+  );
 
-          const body = document.createElement("div");
-          body.className = "sedi-card-body";
+  // 3) Per ogni gruppo, creo titolo + griglia card
+  groupNames.forEach(groupName => {
+    const sectionTitle = document.createElement("div");
+    sectionTitle.className = "sedi-group-title";
+    sectionTitle.textContent = groupName;
+    container.appendChild(sectionTitle);
 
-          const nameEl = document.createElement("div");
-          nameEl.className = "sedi-name";
-          nameEl.textContent = sede.nomeSede || sede.locationId;
+    const grid = document.createElement("div");
+    grid.className = "sedi-grid";
 
-          const addrLines = [];
+    groups[groupName].forEach(s => {
+      const card = document.createElement("div");
+      card.className = "sede-card";
 
-          const rCap = (sede.cap || "").toString().trim();
-          const rComune = (sede.comune || "").trim();
-          if (rCap || rComune) {
-            addrLines.push([rCap, rComune].filter(Boolean).join(" "));
-          }
+      const title = document.createElement("div");
+      title.className = "sede-title";
+      title.textContent = s.nomeSede || s.locationId;
 
-          if (sede.indirizzo) {
-            addrLines.push(sede.indirizzo);
-          }
+      // Linea 2: indirizzo · città
+      const line2 = document.createElement("div");
+      line2.className = "sede-addr";
+      const indirizzo = (s.indirizzo || "").trim();
+      const citta = (s.citta || "").trim();
+      const line2Parts = [];
+      if (indirizzo) line2Parts.push(indirizzo);
+      if (citta) line2Parts.push(citta);
+      line2.textContent = line2Parts.join(" · ") || "Indirizzo non disponibile";
 
-          const addrEl = document.createElement("div");
-          addrEl.className = "sedi-address";
-          addrEl.textContent = addrLines.join(" · ");
+      // Linea 3: CAP + comune
+      const line3 = document.createElement("div");
+      line3.className = "sede-addr";
+      const cap = (s.cap || "").trim();
+      const comune = (s.comune || "").trim();
+      const line3Parts = [];
+      if (cap) line3Parts.push(cap);
+      if (comune) line3Parts.push(comune);
+      line3.textContent = line3Parts.join(" ");
 
-          const metaParts = [];
-          if (sede.provincia) metaParts.push(sede.provincia);
-          if (sede.regione)   metaParts.push(sede.regione);
+      // Linea 4: provincia · regione
+      const line4 = document.createElement("div");
+      line4.className = "sede-addr";
+      const provincia = (s.provincia || "").trim();
+      const regione = (s.regione || "").trim();
+      const line4Parts = [];
+      if (provincia) line4Parts.push(provincia);
+      if (regione) line4Parts.push(regione);
+      line4.textContent = line4Parts.join(" · ");
 
-          const metaEl = document.createElement("div");
-          metaEl.className = "sedi-meta";
-          metaEl.textContent = metaParts.join(" – ");
+      const actions = document.createElement("div");
+      actions.className = "sede-actions";
 
-          body.appendChild(nameEl);
-          body.appendChild(addrEl);
-          if (metaEl.textContent) {
-            body.appendChild(metaEl);
-          }
+      const btn = document.createElement("button");
+      btn.className = "btn btn-primary";
+      btn.textContent = "Apri timbro";
+      btn.onclick = () => {
+        const url = `${TIMBRO_PAGE}?loc=${encodeURIComponent(s.locationId)}`;
+        window.location.href = url;
+      };
 
-          const btn = document.createElement("a");
-          btn.className = "sedi-btn";
-          btn.textContent = "Apri timbro";
-          btn.href = `${TIMBRO_PAGE}?loc=${encodeURIComponent(sede.locationId)}`;
+      actions.appendChild(btn);
 
-          card.appendChild(body);
-          card.appendChild(btn);
+      card.appendChild(title);
+      card.appendChild(line2);
+      card.appendChild(line3);
+      card.appendChild(line4);
+      card.appendChild(actions);
 
-          listEl.appendChild(card);
-        });
+      grid.appendChild(card);
+    });
 
-        groupEl.appendChild(listEl);
-        container.appendChild(groupEl);
-      }
-    }
+    container.appendChild(grid);
+  });
+}
 
-    async function loadSedi() {
-      const container = document.getElementById("sediContainer");
-      try {
-        const res = await fetch(WEBAPP_URL + "?action=sedi");
-        const data = await res.json();
-        if (!res.ok || !data.ok) {
-          throw new Error(data && data.error ? data.error : "Risposta non valida");
-        }
-        renderSedi(data.sedi || []);
-      } catch (err) {
-        console.error("Errore caricamento sedi:", err);
-        container.innerHTML =
-          '<p class="sedi-error">Errore nel caricamento delle sedi.</p>';
-      }
-    }
 
-    document.addEventListener("DOMContentLoaded", loadSedi);
-  </script>
+// ===============================================
+// AVVIO
+// ===============================================
+loadSedi();
+</script>
 </body>
 </html>
