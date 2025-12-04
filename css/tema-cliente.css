@@ -1,7 +1,7 @@
 /* css/tema-cliente.css – RAM Energy E&C */
 
 :root {
-  /* sfondo gradiente */
+  /* sfondo gradiente personalizzato */
   --bg-1: #0a2647;   /* blu scuro RAM */
   --bg-2: #008553;   /* verde RAM */
 
@@ -18,4 +18,10 @@
   --accent: #0a2647;
   --text-main: #222;
   --text-subtle: #555;
+
+  /* 🔹 colore dei link “Torna alla lista sedi” & co. */
+  --link-main: #008553;  /* se vuoi verde */
+  /* se lo vuoi blu istituzionale:
+   * --link-main: #0a2647;
+   */
 }
