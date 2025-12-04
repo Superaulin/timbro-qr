@@ -1,22 +1,23 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Timbro Presenze</title>
 
-  <!-- CSS base + tema cliente -->
-  <link rel="stylesheet" href="css/base.css" />
-  <link rel="stylesheet" href="css/tema-cliente.css" />
+  <!-- CSS di base + tema cliente -->
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/tema-cliente.css">
 </head>
-<body>
-  <!-- BOX BIANCO CENTRALE -->
+<body class="page-timbro">
   <div class="card login-container">
-    <!-- logo dimensionato per la pagina timbro -->
-    <img src="img/logo.png" alt="Logo Aziendale" class="logo-main" />
+    <!-- Logo aziendale -->
+    <img src="img/logo.png" alt="Logo Aziendale" class="logo-main">
 
-    <!-- link alla lista sedi, centrato sotto il logo -->
-    <a href="sedi.html" class="back-link">← Torna alla lista sedi</a>
+    <!-- Link rientro sedi, centrato sotto il logo -->
+    <a href="sedi.html" class="back-link back-link-center">
+      ← Torna alla lista sedi
+    </a>
 
     <h2>Timbro Presenze</h2>
     <p class="subtitle">Registrazione ingresso / uscita</p>
@@ -28,56 +29,43 @@
     <form id="timbroForm" autocomplete="off">
       <div class="input-group">
         <label for="employeeId">ID dipendente</label>
-        <input
-          type="text"
-          id="employeeId"
-          name="employeeId"
-          placeholder="Es. 1001"
-          inputmode="numeric"
-        />
+        <input type="text"
+               id="employeeId"
+               name="employeeId"
+               placeholder="Es. 1001"
+               inputmode="numeric">
       </div>
 
       <div class="input-group">
         <label for="pin">PIN</label>
         <div class="password-wrapper">
-          <input
-            type="password"
-            id="pin"
-            name="pin"
-            placeholder="PIN numerico"
-            inputmode="numeric"
-            pattern="[0-9]*"
-          />
-          <button
-            type="button"
-            class="toggle-password"
-            id="togglePin"
-            aria-label="Mostra/Nascondi PIN"
-          >
+          <input type="password"
+                 id="pin"
+                 name="pin"
+                 placeholder="PIN numerico"
+                 inputmode="numeric"
+                 pattern="[0-9]*">
+          <button type="button"
+                  class="toggle-password"
+                  id="togglePin"
+                  aria-label="Mostra/Nascondi PIN">
             <svg id="eyeIcon" viewBox="0 0 24 24">
-              <path
-                d="M12 5C7 5 2.73 8.11 1 12c1.73 3.89 6 7 11 7s9.27-3.11 11-7c-1.73-3.89-6-7-11-7zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 .002 6.002A3 3 0 0 0 12 9z"
-              />
+              <path d="M12 5C7 5 2.73 8.11 1 12c1.73 3.89 6 7 11 7s9.27-3.11 11-7c-1.73-3.89-6-7-11-7zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 .002 6.002A3 3 0 0 0 12 9z"/>
             </svg>
           </button>
         </div>
       </div>
 
       <div class="buttons-row">
-        <button type="button" class="login-button btn-in" id="btnIn">
-          Entrata
-        </button>
-        <button type="button" class="login-button btn-out" id="btnOut">
-          Uscita
-        </button>
+        <button type="button" class="login-button btn-in" id="btnIn">Entrata</button>
+        <button type="button" class="login-button btn-out" id="btnOut">Uscita</button>
       </div>
     </form>
 
     <div class="status" id="statusMsg"></div>
 
     <div class="gps-note">
-      La posizione viene usata solo per verificare che il timbro avvenga in
-      sede.<br />
+      La posizione viene usata solo per verificare che il timbro avvenga in sede.<br>
       Se neghi il GPS, il timbro viene registrato ma marcato come anomalia.
     </div>
 
@@ -87,6 +75,7 @@
   </div>
 
   <script>
+    // URL WebApp – la stessa usata ovunque
     const WEBAPP_URL =
       "https://script.google.com/macros/s/AKfycbxaiiuQovXIT44GjKBpPXMtMSDXAg51M1lCgi-fbFnGkBTqE5y4PnnaiBQC-HiYGpkC/exec";
 
@@ -95,24 +84,24 @@
       const locParam = params.get("loc") || "";
       const modeParam = (params.get("mode") || "").toUpperCase();
 
-      const sedeNameEl = document.getElementById("sedeName");
+      const sedeNameEl    = document.getElementById("sedeName");
       const sedeAddressEl = document.getElementById("sedeAddress");
-      const modeLabelEl = document.getElementById("modeLabel");
-      const statusEl = document.getElementById("statusMsg");
+      const modeLabelEl   = document.getElementById("modeLabel");
+      const statusEl      = document.getElementById("statusMsg");
 
       const employeeIdInput = document.getElementById("employeeId");
-      const pinInput = document.getElementById("pin");
-      const btnIn = document.getElementById("btnIn");
-      const btnOut = document.getElementById("btnOut");
-      const togglePinBtn = document.getElementById("togglePin");
-      const eyeIcon = document.getElementById("eyeIcon");
+      const pinInput        = document.getElementById("pin");
+      const btnIn           = document.getElementById("btnIn");
+      const btnOut          = document.getElementById("btnOut");
+      const togglePinBtn    = document.getElementById("togglePin");
+      const eyeIcon         = document.getElementById("eyeIcon");
 
       let currentMode = null;
-      let sedeLoaded = false;
+      let sedeLoaded  = false;
 
       function disableButtons(flag) {
-        if (btnIn) btnIn.disabled = flag;
-        if (btnOut) btnOut.disabled = flag;
+        btnIn.disabled  = flag;
+        btnOut.disabled = flag;
       }
 
       function setStatus(msg, isError) {
@@ -124,37 +113,36 @@
 
       if (location.protocol === "file:") {
         setStatus(
-          "La pagina è aperta in locale (file://).\nPer timbrare devi usarla da un indirizzo https (es. GitHub Pages o Netlify).",
+          "La pagina è aperta in locale (file://).\n" +
+          "Per timbrare devi usarla da un indirizzo https (es. GitHub Pages o Netlify).",
           true
         );
         disableButtons(true);
         return;
       }
 
+      // applica modalità IN/OUT in base al QR
       function applyMode(mode) {
         currentMode = mode;
 
-        btnIn.style.display = "inline-flex";
+        btnIn.style.display  = "inline-flex";
         btnOut.style.display = "inline-flex";
 
         if (mode === "IN") {
-          modeLabelEl.innerHTML =
-            'Modalità QR: <span>Entrata attiva</span>';
-          btnOut.style.display = "none";
+          modeLabelEl.innerHTML = 'Modalità QR: <span>Entrata attiva</span>';
+          btnOut.style.display  = "none";
         } else if (mode === "OUT") {
-          modeLabelEl.innerHTML =
-            'Modalità QR: <span>Uscita attiva</span>';
-          btnIn.style.display = "none";
+          modeLabelEl.innerHTML = 'Modalità QR: <span>Uscita attiva</span>';
+          btnIn.style.display   = "none";
         } else {
           modeLabelEl.textContent =
             "Modalità standard (scelta manuale)";
         }
       }
 
-      applyMode(
-        modeParam === "IN" || modeParam === "OUT" ? modeParam : null
-      );
+      applyMode(modeParam === "IN" || modeParam === "OUT" ? modeParam : null);
 
+      // mostra/nasconde PIN
       togglePinBtn.addEventListener("click", () => {
         if (pinInput.type === "password") {
           pinInput.type = "text";
@@ -167,6 +155,7 @@
         }
       });
 
+      // carica dati sede
       if (!locParam) {
         setStatus("QR non valido: parametro 'loc' mancante.", true);
         sedeNameEl.textContent = "Sede: errore";
@@ -174,12 +163,12 @@
       } else {
         sedeNameEl.textContent = "Sede: caricamento…";
         fetch(WEBAPP_URL + "?action=sede&loc=" + encodeURIComponent(locParam))
-          .then((r) => r.json())
-          .then((data) => {
+          .then(r => r.json())
+          .then(data => {
             if (!data.ok) {
               setStatus(
                 "Errore nel recupero della sede: " +
-                  (data.error || "sconosciuto"),
+                (data.error || "sconosciuto"),
                 true
               );
               sedeNameEl.textContent = "Sede: errore";
@@ -187,13 +176,13 @@
               return;
             }
             sedeLoaded = true;
-            const nome = data.nomeSede || data.locationId;
+            const nome      = data.nomeSede || data.locationId;
             const indirizzo = data.indirizzo || "";
 
-            sedeNameEl.textContent = "Sede: " + nome;
+            sedeNameEl.textContent    = "Sede: " + nome;
             sedeAddressEl.textContent = indirizzo;
           })
-          .catch((err) => {
+          .catch(err => {
             setStatus(
               "Errore rete nel recupero sede: " + err.message,
               true
@@ -208,30 +197,30 @@
           return Promise.resolve({
             lat: "GPS_DENIED",
             lon: "",
-            accuracy: "",
+            accuracy: ""
           });
         }
 
-        return new Promise((resolve) => {
+        return new Promise(resolve => {
           navigator.geolocation.getCurrentPosition(
-            (pos) => {
+            pos => {
               resolve({
                 lat: pos.coords.latitude,
                 lon: pos.coords.longitude,
-                accuracy: pos.coords.accuracy,
+                accuracy: pos.coords.accuracy
               });
             },
             () => {
               resolve({
                 lat: "GPS_DENIED",
                 lon: "",
-                accuracy: "",
+                accuracy: ""
               });
             },
             {
               enableHighAccuracy: true,
               timeout: 10000,
-              maximumAge: 0,
+              maximumAge: 0
             }
           );
         });
@@ -239,7 +228,7 @@
 
       async function sendTimbro(type) {
         const employeeId = (employeeIdInput.value || "").trim();
-        const pin = (pinInput.value || "").trim();
+        const pin        = (pinInput.value || "").trim();
 
         if (!employeeId || !pin) {
           setStatus("Inserisci ID dipendente e PIN.", true);
@@ -279,20 +268,21 @@
             lon: pos.lon,
             accuracy: pos.accuracy,
             deviceId: navigator.userAgent.slice(0, 120),
-            clientTs: new Date().toISOString(),
+            clientTs: new Date().toISOString()
           };
 
           const resp = await fetch(WEBAPP_URL, {
             method: "POST",
             headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify(payload),
+            body: JSON.stringify(payload)
           });
 
           const data = await resp.json().catch(() => ({}));
 
           if (!resp.ok || !data.ok) {
-            const msg =
-              data && data.error ? data.error : "HTTP " + resp.status;
+            const msg = (data && data.error)
+              ? data.error
+              : ("HTTP " + resp.status);
             setStatus("Errore timbro " + type + ": " + msg, true);
             disableButtons(false);
             return;
@@ -315,6 +305,7 @@
           setStatus(msg, false);
           pinInput.value = "";
         } catch (err) {
+          console.error("Errore fetch timbro:", err);
           setStatus("Errore invio: " + err.message, true);
         } finally {
           disableButtons(false);
