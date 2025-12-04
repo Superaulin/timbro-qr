@@ -429,3 +429,55 @@ input:focus {
   padding: 1px 3px;
   border-radius: 3px;
 }
+
+/* -------------------------------------------------
+   LISTA SEDI – CARD
+-------------------------------------------------- */
+
+.sedi-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.sede-card {
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  padding: 10px 12px;
+  background: #fafafa;
+}
+
+.sede-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.sede-card-address {
+  font-size: 12px;
+  color: var(--text-subtle);
+  margin: 2px 0 8px;
+}
+
+.sede-card-btn {
+  display: inline-block;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  background: var(--btn-in-bg);
+  color: #fff;
+  transition: background 0.15s, transform 0.1s, box-shadow 0.1s;
+}
+
+.sede-card-btn:hover {
+  background: var(--btn-in-bg-hover);
+}
+
+.sede-card-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
