@@ -1,56 +1,83 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Timbro Presenze</title>
-  <link rel="stylesheet" href="css/base.css">
-  <link rel="stylesheet" href="css/tema-cliente.css">
+
+  <!-- CSS base + tema cliente -->
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/tema-cliente.css" />
 </head>
 <body>
-  <div class="login-container">
-    <img src="img/logo.png" alt="Logo Aziendale" class="logo">
+  <!-- BOX BIANCO CENTRALE -->
+  <div class="card login-container">
+    <!-- logo dimensionato per la pagina timbro -->
+    <img src="img/logo.png" alt="Logo Aziendale" class="logo-main" />
 
-    <!-- LINK ALLA LISTA SEDI -->
-    <div style="text-align:center; margin-bottom:6px;">
-      <a href="sedi.html" class="back-link">Torna alla lista sedi</a>
-    </div>
+    <!-- link alla lista sedi, centrato sotto il logo -->
+    <a href="sedi.html" class="back-link">← Torna alla lista sedi</a>
 
     <h2>Timbro Presenze</h2>
     <p class="subtitle">Registrazione ingresso / uscita</p>
 
-    <p class="sede-label" id="sedeName">Sede: …</p>
+    <p class="sede-label" id="sedeName">Sede: caricamento…</p>
     <p class="sede-indirizzo" id="sedeAddress"></p>
     <p class="mode-label" id="modeLabel">Modalità standard (scelta manuale)</p>
 
     <form id="timbroForm" autocomplete="off">
       <div class="input-group">
         <label for="employeeId">ID dipendente</label>
-        <input type="text" id="employeeId" name="employeeId" placeholder="Es. 1001" inputmode="numeric">
+        <input
+          type="text"
+          id="employeeId"
+          name="employeeId"
+          placeholder="Es. 1001"
+          inputmode="numeric"
+        />
       </div>
 
       <div class="input-group">
         <label for="pin">PIN</label>
         <div class="password-wrapper">
-          <input type="password" id="pin" name="pin" placeholder="PIN numerico"
-                 inputmode="numeric" pattern="[0-9]*">
-          <button type="button" class="toggle-password" id="togglePin" aria-label="Mostra/Nascondi PIN">
+          <input
+            type="password"
+            id="pin"
+            name="pin"
+            placeholder="PIN numerico"
+            inputmode="numeric"
+            pattern="[0-9]*"
+          />
+          <button
+            type="button"
+            class="toggle-password"
+            id="togglePin"
+            aria-label="Mostra/Nascondi PIN"
+          >
             <svg id="eyeIcon" viewBox="0 0 24 24">
-              <path d="M12 5C7 5 2.73 8.11 1 12c1.73 3.89 6 7 11 7s9.27-3.11 11-7c-1.73-3.89-6-7-11-7zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 .002 6.002A3 3 0 0 0 12 9z"/>
+              <path
+                d="M12 5C7 5 2.73 8.11 1 12c1.73 3.89 6 7 11 7s9.27-3.11 11-7c-1.73-3.89-6-7-11-7zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 .002 6.002A3 3 0 0 0 12 9z"
+              />
             </svg>
           </button>
         </div>
       </div>
 
       <div class="buttons-row">
-        <button type="button" class="login-button btn-in" id="btnIn">Entrata</button>
-        <button type="button" class="login-button btn-out" id="btnOut">Uscita</button>
+        <button type="button" class="login-button btn-in" id="btnIn">
+          Entrata
+        </button>
+        <button type="button" class="login-button btn-out" id="btnOut">
+          Uscita
+        </button>
       </div>
     </form>
 
     <div class="status" id="statusMsg"></div>
+
     <div class="gps-note">
-      La posizione viene usata solo per verificare che il timbro avvenga in sede.<br>
+      La posizione viene usata solo per verificare che il timbro avvenga in
+      sede.<br />
       Se neghi il GPS, il timbro viene registrato ma marcato come anomalia.
     </div>
 
@@ -60,7 +87,8 @@
   </div>
 
   <script>
-    const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbxaiiuQovXIT44GjKBpPXMtMSDXAg51M1lCgi-fbFnGkBTqE5y4PnnaiBQC-HiYGpkC/exec";
+    const WEBAPP_URL =
+      "https://script.google.com/macros/s/AKfycbxaiiuQovXIT44GjKBpPXMtMSDXAg51M1lCgi-fbFnGkBTqE5y4PnnaiBQC-HiYGpkC/exec";
 
     document.addEventListener("DOMContentLoaded", () => {
       const params = new URLSearchParams(window.location.search);
@@ -95,7 +123,10 @@
       }
 
       if (location.protocol === "file:") {
-        setStatus("La pagina è aperta in locale (file://).\nPer timbrare devi usarla da un indirizzo https (es. GitHub Pages o Netlify).", true);
+        setStatus(
+          "La pagina è aperta in locale (file://).\nPer timbrare devi usarla da un indirizzo https (es. GitHub Pages o Netlify).",
+          true
+        );
         disableButtons(true);
         return;
       }
@@ -107,25 +138,32 @@
         btnOut.style.display = "inline-flex";
 
         if (mode === "IN") {
-          modeLabelEl.innerHTML = 'Modalità QR: <span>Entrata attiva</span>';
+          modeLabelEl.innerHTML =
+            'Modalità QR: <span>Entrata attiva</span>';
           btnOut.style.display = "none";
         } else if (mode === "OUT") {
-          modeLabelEl.innerHTML = 'Modalità QR: <span>Uscita attiva</span>';
+          modeLabelEl.innerHTML =
+            'Modalità QR: <span>Uscita attiva</span>';
           btnIn.style.display = "none";
         } else {
-          modeLabelEl.textContent = "Modalità standard (scelta manuale)";
+          modeLabelEl.textContent =
+            "Modalità standard (scelta manuale)";
         }
       }
 
-      applyMode(modeParam === "IN" || modeParam === "OUT" ? modeParam : null);
+      applyMode(
+        modeParam === "IN" || modeParam === "OUT" ? modeParam : null
+      );
 
       togglePinBtn.addEventListener("click", () => {
         if (pinInput.type === "password") {
           pinInput.type = "text";
-          eyeIcon.innerHTML = '<path d="M12 5C7 5 2.73 8.11 1 12c.37.83.86 1.61 1.45 2.33L3 15.78 4.22 17l1.9-1.9A11.5 11.5 0 0 0 12 19c5 0 9.27-3.11 11-7-.64-1.44-1.64-2.76-2.88-3.86L19.78 9 18.56 10.22l-1.4 1.4A4.98 4.98 0 0 1 12 17a4.96 4.96 0 0 1-3.54-1.46L6.22 15.3 5 14.08l1.02-1.02A6.96 6.96 0 0 1 5.05 9.0L6.5 7.55A8 8 0 0 1 12 7c.69 0 1.35.09 1.97.26L15.45 5.8A9.87 9.87 0 0 0 12 5z"/>';
+          eyeIcon.innerHTML =
+            '<path d="M12 5C7 5 2.73 8.11 1 12c.37.83.86 1.61 1.45 2.33L3 15.78 4.22 17l1.9-1.9A11.5 11.5 0 0 0 12 19c5 0 9.27-3.11 11-7-.64-1.44-1.64-2.76-2.88-3.86L19.78 9 18.56 10.22l-1.4 1.4A4.98 4.98 0 0 1 12 17a4.96 4.96 0 0 1-3.54-1.46L6.22 15.3 5 14.08l1.02-1.02A6.96 6.96 0 0 1 5.05 9.0L6.5 7.55A8 8 0 0 1 12 7c.69 0 1.35.09 1.97.26L15.45 5.8A9.87 9.87 0 0 0 12 5z"/>';
         } else {
           pinInput.type = "password";
-          eyeIcon.innerHTML = '<path d="M12 5C7 5 2.73 8.11 1 12c1.73 3.89 6 7 11 7s9.27-3.11 11-7c-1.73-3.89-6-7-11-7zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 .002 6.002A3 3 0 0 0 12 9z"/>';
+          eyeIcon.innerHTML =
+            '<path d="M12 5C7 5 2.73 8.11 1 12c1.73 3.89 6 7 11 7s9.27-3.11 11-7c-1.73-3.89-6-7-11-7zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 .002 6.002A3 3 0 0 0 12 9z"/>';
         }
       });
 
@@ -136,10 +174,14 @@
       } else {
         sedeNameEl.textContent = "Sede: caricamento…";
         fetch(WEBAPP_URL + "?action=sede&loc=" + encodeURIComponent(locParam))
-          .then(r => r.json())
-          .then(data => {
+          .then((r) => r.json())
+          .then((data) => {
             if (!data.ok) {
-              setStatus("Errore nel recupero della sede: " + (data.error || "sconosciuto"), true);
+              setStatus(
+                "Errore nel recupero della sede: " +
+                  (data.error || "sconosciuto"),
+                true
+              );
               sedeNameEl.textContent = "Sede: errore";
               disableButtons(true);
               return;
@@ -151,8 +193,11 @@
             sedeNameEl.textContent = "Sede: " + nome;
             sedeAddressEl.textContent = indirizzo;
           })
-          .catch(err => {
-            setStatus("Errore rete nel recupero sede: " + err.message, true);
+          .catch((err) => {
+            setStatus(
+              "Errore rete nel recupero sede: " + err.message,
+              true
+            );
             sedeNameEl.textContent = "Sede: errore rete";
             disableButtons(true);
           });
@@ -163,30 +208,30 @@
           return Promise.resolve({
             lat: "GPS_DENIED",
             lon: "",
-            accuracy: ""
+            accuracy: "",
           });
         }
 
-        return new Promise(resolve => {
+        return new Promise((resolve) => {
           navigator.geolocation.getCurrentPosition(
-            pos => {
+            (pos) => {
               resolve({
                 lat: pos.coords.latitude,
                 lon: pos.coords.longitude,
-                accuracy: pos.coords.accuracy
+                accuracy: pos.coords.accuracy,
               });
             },
-            err => {
+            () => {
               resolve({
                 lat: "GPS_DENIED",
                 lon: "",
-                accuracy: ""
+                accuracy: "",
               });
             },
             {
               enableHighAccuracy: true,
               timeout: 10000,
-              maximumAge: 0
+              maximumAge: 0,
             }
           );
         });
@@ -234,22 +279,20 @@
             lon: pos.lon,
             accuracy: pos.accuracy,
             deviceId: navigator.userAgent.slice(0, 120),
-            clientTs: new Date().toISOString()
+            clientTs: new Date().toISOString(),
           };
-
-          console.log("WEBAPP_URL =", WEBAPP_URL);
-          console.log("Payload timbro", payload);
 
           const resp = await fetch(WEBAPP_URL, {
             method: "POST",
             headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(payload),
           });
 
           const data = await resp.json().catch(() => ({}));
 
           if (!resp.ok || !data.ok) {
-            const msg = (data && data.error) ? data.error : ("HTTP " + resp.status);
+            const msg =
+              data && data.error ? data.error : "HTTP " + resp.status;
             setStatus("Errore timbro " + type + ": " + msg, true);
             disableButtons(false);
             return;
@@ -272,7 +315,6 @@
           setStatus(msg, false);
           pinInput.value = "";
         } catch (err) {
-          console.error("Errore fetch timbro:", err);
           setStatus("Errore invio: " + err.message, true);
         } finally {
           disableButtons(false);
