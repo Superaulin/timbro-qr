@@ -10,7 +10,7 @@
   font-family: 'Poppins', sans-serif;
 }
 
-/* VARIABILI DI BASE – override dal tema */
+/* VARIABILI DI BASE – default neutri, sovrascrivibili dal tema */
 :root {
   --bg-1: #1e3665;
   --bg-2: #008553;
@@ -25,6 +25,9 @@
   --accent: #1e3665;
   --text-main: #222;
   --text-subtle: #555;
+
+  /* 🔹 variabile per i link “primari” (es. Torna alla lista sedi) */
+  --link-main: #008553;
 }
 
 /* SFONDO GENERALE */
@@ -81,11 +84,16 @@ body.page-sedi {
 /* LINK DI RITORNO */
 .back-link {
   font-size: 12px;
-  color: var(--accent);
+  color: var(--link-main);   /* 🔹 usa la variabile, NON un colore fisso */
   text-decoration: none;
   display: inline-flex;
   align-items: center;
   gap: 4px;
+}
+
+/* mantieni il colore anche da visitato */
+.back-link:visited {
+  color: var(--link-main);
 }
 
 .back-link:hover {
