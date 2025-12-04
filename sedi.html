@@ -1,114 +1,171 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sedi – Timbro Presenze</title>
 
-  <!-- CSS base + tema cliente -->
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/tema-cliente.css">
 </head>
-<body>
-  <div class="card">
+<body class="page-sedi">
+  <div class="card card-sedi">
     <header class="sedi-header">
       <img src="img/logo.png" alt="Logo Aziendale" class="logo-sedi">
       <div class="sedi-header-text">
         <h1>Seleziona la sede</h1>
-        <p>Scegli la sede o il cantiere in cui ti trovi per aprire la pagina di timbratura.</p>
+        <p>
+          Scegli la sede o il cantiere in cui ti trovi per aprire la pagina di timbratura.
+          Puoi salvare la pagina tra i preferiti per usarla più velocemente.
+        </p>
       </div>
     </header>
 
-    <hr style="margin: 8px 0 12px; border: none; border-top: 1px solid #eee;">
+    <hr class="sedi-divider">
 
-    <div id="sediContainer" class="sedi-section">
-      Caricamento sedi…
+    <div id="sediContainer" class="sedi-list">
+      <p class="sedi-loading">Caricamento sedi in corso…</p>
     </div>
   </div>
 
-<script>
-  // stesso URL dell'index
-  const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbxaiiuQovXIT44GjKBpPXMtMSDXAg51M1lCgi-fbFnGkBTqE5y4PnnaiBQC-HiYGpkC/exec";
+  <script>
+    const WEBAPP_URL =
+      "https://script.google.com/macros/s/AKfycbxaiiuQovXIT44GjKBpPXMtMSDXAg51M1lCgi-fbFnGkBTqE5y4PnnaiBQC-HiYGpkC/exec";
 
-  const sediContainer = document.getElementById("sediContainer");
+    const TIMBRO_PAGE = "index.html";
 
-  function buildTimbroUrl(locationId) {
-    // /timbro-qr/ -> /timbro-qr/?loc=SEDE_4
-    const base = window.location.origin + window.location.pathname.replace("sedi.html", "");
-    return base + "?loc=" + encodeURIComponent(locationId);
-  }
+    // ------------ utilità grouping -------------
+    function getGroupNameFromSede(sede) {
+      const regione   = (sede.regione  || "").trim();
+      const provincia = (sede.provincia || "").trim();
+      const comune    = (sede.comune   || "").trim();
 
-  function renderSedi(sedi) {
-    if (!Array.isArray(sedi) || !sedi.length) {
-      sediContainer.innerHTML = "<p class='error-msg'>Nessuna sede configurata.</p>";
-      return;
+      if (comune && provincia) return `${comune} (${provincia})`;
+      if (provincia && regione) return `${provincia} – ${regione}`;
+      if (provincia) return provincia;
+      if (regione) return regione;
+
+      // fallback vecchio: ultima parte dell'indirizzo
+      if (sede.indirizzo) {
+        const parts = sede.indirizzo.split(",");
+        return parts[parts.length - 1].trim() || "Altro";
+      }
+      return "Altro";
     }
 
-    const frag = document.createDocumentFragment();
+    function renderSedi(sedi) {
+      const container = document.getElementById("sediContainer");
+      container.innerHTML = "";
 
-    sedi.forEach(s => {
-      const card = document.createElement("div");
-      card.className = "sede-card";
+      if (!Array.isArray(sedi) || sedi.length === 0) {
+        container.innerHTML =
+          "<p>Nessuna sede configurata.</p>";
+        return;
+      }
 
-      const nome = s.nomeSede || s.locationId || "Sede senza nome";
-      const indirizzo = s.indirizzo || "";
+      // raggruppa per gruppo (es. comune/provincia)
+      const groups = {};
+      for (const sede of sedi) {
+        if (!sede || !sede.locationId) continue;
+        if (sede.attivo === false || sede.attivo === "FALSE") continue;
 
-      card.innerHTML = `
-        <div class="sede-card-body">
-          <div class="sede-card-title">${nome}</div>
-          ${indirizzo ? `<div class="sede-card-address">${indirizzo}</div>` : ""}
-        </div>
-        <div class="sede-card-footer">
-          <a class="sede-card-button" href="${buildTimbroUrl(s.locationId)}">Apri timbro</a>
-        </div>
-      `;
+        const groupName = getGroupNameFromSede(sede);
+        if (!groups[groupName]) groups[groupName] = [];
+        groups[groupName].push(sede);
+      }
 
-      frag.appendChild(card);
-    });
+      const groupNames = Object.keys(groups).sort((a, b) =>
+        a.localeCompare(b, "it", { sensitivity: "base" })
+      );
 
-    sediContainer.innerHTML = "";
-    sediContainer.appendChild(frag);
-  }
+      for (const gName of groupNames) {
+        const g = groups[gName];
 
-  async function loadSedi() {
-    try {
-      const resp = await fetch(WEBAPP_URL + "?action=sedi");
-      const text = await resp.text();
+        const groupEl = document.createElement("section");
+        groupEl.className = "sedi-group";
 
-      let data;
+        const h = document.createElement("h2");
+        h.className = "sedi-group-title";
+        h.textContent = gName;
+        groupEl.appendChild(h);
+
+        const listEl = document.createElement("div");
+        listEl.className = "sedi-group-list";
+
+        g.forEach(sede => {
+          const card = document.createElement("article");
+          card.className = "sedi-card";
+
+          const body = document.createElement("div");
+          body.className = "sedi-card-body";
+
+          const nameEl = document.createElement("div");
+          nameEl.className = "sedi-name";
+          nameEl.textContent = sede.nomeSede || sede.locationId;
+
+          const addrLines = [];
+
+          const rCap = (sede.cap || "").toString().trim();
+          const rComune = (sede.comune || "").trim();
+          if (rCap || rComune) {
+            addrLines.push([rCap, rComune].filter(Boolean).join(" "));
+          }
+
+          if (sede.indirizzo) {
+            addrLines.push(sede.indirizzo);
+          }
+
+          const addrEl = document.createElement("div");
+          addrEl.className = "sedi-address";
+          addrEl.textContent = addrLines.join(" · ");
+
+          const metaParts = [];
+          if (sede.provincia) metaParts.push(sede.provincia);
+          if (sede.regione)   metaParts.push(sede.regione);
+
+          const metaEl = document.createElement("div");
+          metaEl.className = "sedi-meta";
+          metaEl.textContent = metaParts.join(" – ");
+
+          body.appendChild(nameEl);
+          body.appendChild(addrEl);
+          if (metaEl.textContent) {
+            body.appendChild(metaEl);
+          }
+
+          const btn = document.createElement("a");
+          btn.className = "sedi-btn";
+          btn.textContent = "Apri timbro";
+          btn.href = `${TIMBRO_PAGE}?loc=${encodeURIComponent(sede.locationId)}`;
+
+          card.appendChild(body);
+          card.appendChild(btn);
+
+          listEl.appendChild(card);
+        });
+
+        groupEl.appendChild(listEl);
+        container.appendChild(groupEl);
+      }
+    }
+
+    async function loadSedi() {
+      const container = document.getElementById("sediContainer");
       try {
-        data = JSON.parse(text);
-      } catch (e) {
-        console.error("Risposta NON JSON dal server:", text);
-        sediContainer.innerHTML = `<p class="error-msg">
-          Errore nel parsing della risposta.<br>
-          <small>${text}</small>
-        </p>`;
-        return;
+        const res = await fetch(WEBAPP_URL + "?action=sedi");
+        const data = await res.json();
+        if (!res.ok || !data.ok) {
+          throw new Error(data && data.error ? data.error : "Risposta non valida");
+        }
+        renderSedi(data.sedi || []);
+      } catch (err) {
+        console.error("Errore caricamento sedi:", err);
+        container.innerHTML =
+          '<p class="sedi-error">Errore nel caricamento delle sedi.</p>';
       }
-
-      console.log("Risposta sedi:", data);
-
-      if (!resp.ok || !data.ok) {
-        const errMsg = (data && data.error) ? data.error : ("HTTP " + resp.status);
-        sediContainer.innerHTML = `<p class="error-msg">
-          Errore nel caricamento delle sedi:<br>
-          <small>${errMsg}</small>
-        </p>`;
-        return;
-      }
-
-      renderSedi(data.sedi);
-    } catch (err) {
-      console.error("Errore fetch sedi:", err);
-      sediContainer.innerHTML = `<p class="error-msg">
-        Errore di connessione durante il caricamento delle sedi.<br>
-        <small>${err.message}</small>
-      </p>`;
     }
-  }
 
-  document.addEventListener("DOMContentLoaded", loadSedi);
-</script>
+    document.addEventListener("DOMContentLoaded", loadSedi);
+  </script>
 </body>
 </html>
