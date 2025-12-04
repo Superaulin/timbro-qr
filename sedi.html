@@ -1,95 +1,114 @@
 <!doctype html>
 <html lang="it">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Sedi – Timbro Facile</title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Sedi – Timbro Presenze</title>
 
-  <link rel="stylesheet" href="css/base.css" />
-  <link rel="stylesheet" href="css/tema-cliente.css" />
+  <!-- CSS base + tema cliente -->
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/tema-cliente.css">
 </head>
 <body>
-  <!-- card centrale con logo + elenco sedi -->
   <div class="card">
-    <!-- header con logo più piccolo -->
-    <div class="sedi-header">
-      <img src="img/logo.png" alt="Logo Aziendale" class="logo-sedi" />
+    <header class="sedi-header">
+      <img src="img/logo.png" alt="Logo Aziendale" class="logo-sedi">
       <div class="sedi-header-text">
         <h1>Seleziona la sede</h1>
-        <p>
-          Scegli la sede o il cantiere in cui ti trovi per aprire la pagina di timbratura.
-          Puoi salvare la pagina tra i preferiti per usarla più velocemente.
-        </p>
+        <p>Scegli la sede o il cantiere in cui ti trovi per aprire la pagina di timbratura.</p>
       </div>
-    </div>
+    </header>
 
-    <hr style="margin: 8px 0 12px; border: none; border-top: 1px solid #eee;" />
+    <hr style="margin: 8px 0 12px; border: none; border-top: 1px solid #eee;">
 
-    <!-- elenco sedi -->
-    <div id="sediList" class="sedi-list">
-      <!-- riempito da JavaScript -->
+    <div id="sediContainer" class="sedi-section">
+      Caricamento sedi…
     </div>
   </div>
 
-  <script>
-    const WEBAPP_URL =
-      "https://script.google.com/macros/s/AKfycbxaiiuQovXIT44GjKBpPXMtMSDXAg51M1lCgi-fbFnGkBTqE5y4PnnaiBQC-HiYGpkC/exec";
+<script>
+  // stesso URL dell'index
+  const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbxaiiuQovXIT44GjKBpPXMtMSDXAg51M1lCgi-fbFnGkBTqE5y4PnnaiBQC-HiYGpkC/exec";
 
-    document.addEventListener("DOMContentLoaded", () => {
-      const listEl = document.getElementById("sediList");
+  const sediContainer = document.getElementById("sediContainer");
 
-      function renderError(msg) {
-        listEl.innerHTML = "<p>" + msg + "</p>";
+  function buildTimbroUrl(locationId) {
+    // /timbro-qr/ -> /timbro-qr/?loc=SEDE_4
+    const base = window.location.origin + window.location.pathname.replace("sedi.html", "");
+    return base + "?loc=" + encodeURIComponent(locationId);
+  }
+
+  function renderSedi(sedi) {
+    if (!Array.isArray(sedi) || !sedi.length) {
+      sediContainer.innerHTML = "<p class='error-msg'>Nessuna sede configurata.</p>";
+      return;
+    }
+
+    const frag = document.createDocumentFragment();
+
+    sedi.forEach(s => {
+      const card = document.createElement("div");
+      card.className = "sede-card";
+
+      const nome = s.nomeSede || s.locationId || "Sede senza nome";
+      const indirizzo = s.indirizzo || "";
+
+      card.innerHTML = `
+        <div class="sede-card-body">
+          <div class="sede-card-title">${nome}</div>
+          ${indirizzo ? `<div class="sede-card-address">${indirizzo}</div>` : ""}
+        </div>
+        <div class="sede-card-footer">
+          <a class="sede-card-button" href="${buildTimbroUrl(s.locationId)}">Apri timbro</a>
+        </div>
+      `;
+
+      frag.appendChild(card);
+    });
+
+    sediContainer.innerHTML = "";
+    sediContainer.appendChild(frag);
+  }
+
+  async function loadSedi() {
+    try {
+      const resp = await fetch(WEBAPP_URL + "?action=sedi");
+      const text = await resp.text();
+
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        console.error("Risposta NON JSON dal server:", text);
+        sediContainer.innerHTML = `<p class="error-msg">
+          Errore nel parsing della risposta.<br>
+          <small>${text}</small>
+        </p>`;
+        return;
       }
 
-      fetch(WEBAPP_URL + "?action=listaSedi")
-        .then((r) => r.json())
-        .then((data) => {
-          if (!data.ok || !Array.isArray(data.sedi)) {
-            renderError("Errore nel caricamento delle sedi.");
-            return;
-          }
+      console.log("Risposta sedi:", data);
 
-          listEl.innerHTML = "";
+      if (!resp.ok || !data.ok) {
+        const errMsg = (data && data.error) ? data.error : ("HTTP " + resp.status);
+        sediContainer.innerHTML = `<p class="error-msg">
+          Errore nel caricamento delle sedi:<br>
+          <small>${errMsg}</small>
+        </p>`;
+        return;
+      }
 
-          data.sedi.forEach((sede) => {
-            const card = document.createElement("div");
-            card.className = "sede-card";
+      renderSedi(data.sedi);
+    } catch (err) {
+      console.error("Errore fetch sedi:", err);
+      sediContainer.innerHTML = `<p class="error-msg">
+        Errore di connessione durante il caricamento delle sedi.<br>
+        <small>${err.message}</small>
+      </p>`;
+    }
+  }
 
-            const nome = sede.nomeSede || sede.locationId || "Sede";
-            const indirizzo = sede.indirizzo || "";
-            const locId = sede.locationId;
-
-            card.innerHTML = `
-              <div class="sede-card-title">${nome}</div>
-              ${
-                indirizzo
-                  ? `<div class="sede-card-address">${indirizzo}</div>`
-                  : ""
-              }
-              <button class="sede-card-btn" data-loc="${locId}">
-                Apri timbro
-              </button>
-            `;
-
-            listEl.appendChild(card);
-          });
-
-          listEl.addEventListener("click", (e) => {
-            const btn = e.target.closest(".sede-card-btn");
-            if (!btn) return;
-            const loc = btn.getAttribute("data-loc");
-            if (!loc) return;
-
-            const url = "index.html?loc=" + encodeURIComponent(loc);
-            window.location.href = url;
-          });
-        })
-        .catch((err) => {
-          console.error(err);
-          renderError("Errore rete nel caricamento delle sedi: " + err.message);
-        });
-    });
-  </script>
+  document.addEventListener("DOMContentLoaded", loadSedi);
+</script>
 </body>
 </html>
