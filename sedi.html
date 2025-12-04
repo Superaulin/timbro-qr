@@ -1,189 +1,95 @@
 <!doctype html>
 <html lang="it">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Sedi – Timbro Facile</title>
 
-  <!--  CSS  -->
-    <link rel="stylesheet" href="css/base.css">
-    <link rel="stylesheet" href="css/tema-cliente.css">
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/tema-cliente.css" />
 </head>
 <body>
-  <div class="app-shell">
-    <div class="app-card app-card-wide">
-
-      <!-- HEADER con logo + titolo -->
-      <div class="app-header">
-        <div class="logo-wrapper">
-          <!-- 👉 usa il logo già presente nella cartella img -->
-          <img src="img/logo.png" alt="Logo Aziendale" class="logo">
-        </div>
-        <div class="header-text">
-          <div class="app-title">Seleziona la sede</div>
-          <div class="app-subtitle">
-            Scegli la sede o il cantiere in cui ti trovi per aprire la pagina di timbratura.
-          </div>
-        </div>
+  <!-- card centrale con logo + elenco sedi -->
+  <div class="card">
+    <!-- header con logo più piccolo -->
+    <div class="sedi-header">
+      <img src="img/logo.png" alt="Logo Aziendale" class="logo-sedi" />
+      <div class="sedi-header-text">
+        <h1>Seleziona la sede</h1>
+        <p>
+          Scegli la sede o il cantiere in cui ti trovi per aprire la pagina di timbratura.
+          Puoi salvare la pagina tra i preferiti per usarla più velocemente.
+        </p>
       </div>
+    </div>
 
-      <div class="app-divider"></div>
+    <hr style="margin: 8px 0 12px; border: none; border-top: 1px solid #eee;" />
 
-      <div class="helper-text">
-        Tocca la sede corretta per aprire la pagina di timbro. Puoi salvare la pagina tra i preferiti per usarla più velocemente.
-      </div>
-
-      <!-- QUI RENDERIZZIAMO I GRUPPI DI SEDI -->
-      <div id="sediContainer" class="sedi-section">
-        Caricamento sedi…
-      </div>
-
+    <!-- elenco sedi -->
+    <div id="sediList" class="sedi-list">
+      <!-- riempito da JavaScript -->
     </div>
   </div>
 
-<script>
-// ===============================================
-// CONFIGURAZIONE
-// ===============================================
+  <script>
+    const WEBAPP_URL =
+      "https://script.google.com/macros/s/AKfycbxaiiuQovXIT44GjKBpPXMtMSDXAg51M1lCgi-fbFnGkBTqE5y4PnnaiBQC-HiYGpkC/exec";
 
-// 🔥 Webhook Apps Script – endpoint "sedi"
-const WEBHOOK_SEDI = "https://script.google.com/macros/s/AKfycbxaiiuQovXIT44GjKBpPXMtMSDXAg51M1lCgi-fbFnGkBTqE5y4PnnaiBQC-HiYGpkC/exec?action=sedi";
-                      
-// Pagina di timbratura (già esistente)
-const TIMBRO_PAGE = "index.html";
+    document.addEventListener("DOMContentLoaded", () => {
+      const listEl = document.getElementById("sediList");
 
+      function renderError(msg) {
+        listEl.innerHTML = "<p>" + msg + "</p>";
+      }
 
-// ===============================================
-// CARICAMENTO SEDI
-// ===============================================
-async function loadSedi() {
-  const container = document.getElementById("sediContainer");
-  try {
-    const res = await fetch(WEBHOOK_SEDI);
-    const data = await res.json();
+      fetch(WEBAPP_URL + "?action=listaSedi")
+        .then((r) => r.json())
+        .then((data) => {
+          if (!data.ok || !Array.isArray(data.sedi)) {
+            renderError("Errore nel caricamento delle sedi.");
+            return;
+          }
 
-    if (!data.ok) {
-      container.textContent = "Errore nel caricare le sedi.";
-      return;
-    }
+          listEl.innerHTML = "";
 
-    renderGroupedSedi(data.sedi || []);
+          data.sedi.forEach((sede) => {
+            const card = document.createElement("div");
+            card.className = "sede-card";
 
-  } catch (err) {
-    console.error(err);
-    container.textContent = "Errore di connessione durante il caricamento delle sedi.";
-  }
-}
+            const nome = sede.nomeSede || sede.locationId || "Sede";
+            const indirizzo = sede.indirizzo || "";
+            const locId = sede.locationId;
 
+            card.innerHTML = `
+              <div class="sede-card-title">${nome}</div>
+              ${
+                indirizzo
+                  ? `<div class="sede-card-address">${indirizzo}</div>`
+                  : ""
+              }
+              <button class="sede-card-btn" data-loc="${locId}">
+                Apri timbro
+              </button>
+            `;
 
-// ===============================================
-// RAGGRUPPAMENTO SEDI (per città / area)
-// ===============================================
-function getGroupLabel(sede) {
-  const indirizzo = (sede.indirizzo || "").trim();
+            listEl.appendChild(card);
+          });
 
-  if (!indirizzo) return "Altre sedi";
+          listEl.addEventListener("click", (e) => {
+            const btn = e.target.closest(".sede-card-btn");
+            if (!btn) return;
+            const loc = btn.getAttribute("data-loc");
+            if (!loc) return;
 
-  // Proviamo pattern tipo: "Via ..., Città - Provincia"
-  // Esempio: "Via Francia 124, Guasticce - Livorno"
-  let group = "";
-
-  if (indirizzo.includes("-")) {
-    // prendo la parte dopo il trattino
-    const parts = indirizzo.split("-");
-    group = parts[parts.length - 1].trim();
-  } else if (indirizzo.includes(",")) {
-    // prendo la parte dopo l'ultima virgola
-    const parts = indirizzo.split(",");
-    group = parts[parts.length - 1].trim();
-  }
-
-  if (!group) group = "Altre sedi";
-  return group;
-}
-
-
-// ===============================================
-// RENDERING GRUPPI + CARD SEDI
-// ===============================================
-function renderGroupedSedi(sedi) {
-  const container = document.getElementById("sediContainer");
-  container.innerHTML = "";
-
-  if (!sedi.length) {
-    container.textContent = "Nessuna sede configurata.";
-    return;
-  }
-
-  // 1) Costruisco una mappa: gruppo -> array sedi
-  const groups = {};
-  sedi.forEach(s => {
-    const g = getGroupLabel(s);
-    if (!groups[g]) groups[g] = [];
-    groups[g].push(s);
-  });
-
-  // 2) Ordino alfabeticamente i gruppi
-  const groupNames = Object.keys(groups).sort((a, b) => a.localeCompare(b, "it"));
-
-  // 3) Per ogni gruppo, creo titolo + griglia card
-  groupNames.forEach(groupName => {
-    const sectionTitle = document.createElement("div");
-    sectionTitle.className = "sedi-group-title";
-    sectionTitle.textContent = groupName;
-    container.appendChild(sectionTitle);
-
-    const grid = document.createElement("div");
-    grid.className = "sedi-grid";
-
-    groups[groupName].forEach(s => {
-      const card = document.createElement("div");
-      card.className = "sede-card";
-
-      const title = document.createElement("div");
-      title.className = "sede-title";
-      title.textContent = s.nomeSede || s.locationId;
-
-      const addr = document.createElement("div");
-      addr.className = "sede-addr";
-      addr.textContent = s.indirizzo || "Indirizzo non disponibile";
-
-      const actions = document.createElement("div");
-      actions.className = "sede-actions";
-
-      const btn = document.createElement("button");
-      btn.className = "btn btn-primary";
-      btn.textContent = "Apri timbro";
-      btn.onclick = () => {
-        const url = `${TIMBRO_PAGE}?loc=${encodeURIComponent(s.locationId)}`;
-        window.location.href = url;
-      };
-
-      actions.appendChild(btn);
-
-      card.appendChild(title);
-      card.appendChild(addr);
-      card.appendChild(actions);
-
-      grid.appendChild(card);
+            const url = "index.html?loc=" + encodeURIComponent(loc);
+            window.location.href = url;
+          });
+        })
+        .catch((err) => {
+          console.error(err);
+          renderError("Errore rete nel caricamento delle sedi: " + err.message);
+        });
     });
-
-    container.appendChild(grid);
-  });
-}
-
-
-// ===============================================
-// UTILITY
-// ===============================================
-// (Se ti serve escapeHtml puoi aggiungerlo, qui non è strettamente necessario
-//  perché i dati arrivano dal tuo foglio)
-
-
-// ===============================================
-// AVVIO
-// ===============================================
-loadSedi();
-</script>
+  </script>
 </body>
 </html>
