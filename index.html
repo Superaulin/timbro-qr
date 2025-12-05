@@ -19,36 +19,42 @@
       ← Torna alla lista sedi
     </a>
 
+    <!-- Titolo pagina -->
     <h2>Timbro Presenze</h2>
     <p class="subtitle">Registrazione ingresso / uscita</p>
 
-    <p class="sede-label" id="sedeName">Sede: caricamento…</p>
+    <!-- Info sede selezionata -->
+    <p class="sede-label" id="sedeName">Sede selezionata…</p>
     <p class="sede-indirizzo" id="sedeAddress"></p>
     <p class="mode-label" id="modeLabel">Modalità standard (scelta manuale)</p>
 
+    <!-- Form timbro -->
     <form id="timbroForm" autocomplete="off">
       <div class="input-group">
         <label for="employeeId">ID dipendente</label>
-        <input type="text"
-               id="employeeId"
-               name="employeeId"
-               placeholder="Es. 1001"
-               inputmode="numeric">
+        <input
+          type="text"
+          id="employeeId"
+          name="employeeId"
+          placeholder="Es. 1001"
+          inputmode="numeric">
       </div>
 
       <div class="input-group">
         <label for="pin">PIN</label>
         <div class="password-wrapper">
-          <input type="password"
-                 id="pin"
-                 name="pin"
-                 placeholder="PIN numerico"
-                 inputmode="numeric"
-                 pattern="[0-9]*">
-          <button type="button"
-                  class="toggle-password"
-                  id="togglePin"
-                  aria-label="Mostra/Nascondi PIN">
+          <input
+            type="password"
+            id="pin"
+            name="pin"
+            placeholder="PIN numerico"
+            inputmode="numeric"
+            pattern="[0-9]*">
+          <button
+            type="button"
+            class="toggle-password"
+            id="togglePin"
+            aria-label="Mostra/Nascondi PIN">
             <svg id="eyeIcon" viewBox="0 0 24 24">
               <path d="M12 5C7 5 2.73 8.11 1 12c1.73 3.89 6 7 11 7s9.27-3.11 11-7c-1.73-3.89-6-7-11-7zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 .002 6.002A3 3 0 0 0 12 9z"/>
             </svg>
@@ -62,13 +68,16 @@
       </div>
     </form>
 
+    <!-- Messaggi esito -->
     <div class="status" id="statusMsg"></div>
 
+    <!-- Nota GPS -->
     <div class="gps-note">
       La posizione viene usata solo per verificare che il timbro avvenga in sede.<br>
       Se neghi il GPS, il timbro viene registrato ma marcato come anomalia.
     </div>
 
+    <!-- Info tecnica QR -->
     <div class="footer-tech">
       QR: <code>loc</code> / <code>mode</code> · v2 UI
     </div>
@@ -78,10 +87,10 @@
     // URL WebApp – la stessa usata ovunque
     const WEBAPP_URL =
       "https://script.google.com/macros/s/AKfycbxaiiuQovXIT44GjKBpPXMtMSDXAg51M1lCgi-fbFnGkBTqE5y4PnnaiBQC-HiYGpkC/exec";
-       
+
     document.addEventListener("DOMContentLoaded", () => {
-      const params = new URLSearchParams(window.location.search);
-      const locParam = params.get("loc") || "";
+      const params    = new URLSearchParams(window.location.search);
+      const locParam  = params.get("loc") || "";
       const modeParam = (params.get("mode") || "").toUpperCase();
 
       const sedeNameEl    = document.getElementById("sedeName");
@@ -111,6 +120,7 @@
         statusEl.classList.add(isError ? "err" : "ok");
       }
 
+      // Blocco sicurezza se aperto in locale
       if (location.protocol === "file:") {
         setStatus(
           "La pagina è aperta in locale (file://).\n" +
@@ -135,8 +145,7 @@
           modeLabelEl.innerHTML = 'Modalità QR: <span>Uscita attiva</span>';
           btnIn.style.display   = "none";
         } else {
-          modeLabelEl.textContent =
-            "Modalità standard (scelta manuale)";
+          modeLabelEl.textContent = "Modalità standard (scelta manuale)";
         }
       }
 
@@ -158,10 +167,10 @@
       // carica dati sede
       if (!locParam) {
         setStatus("QR non valido: parametro 'loc' mancante.", true);
-        sedeNameEl.textContent = "Sede: errore";
+        sedeNameEl.textContent = "Sede non valida";
         disableButtons(true);
       } else {
-        sedeNameEl.textContent = "Sede: caricamento…";
+        sedeNameEl.textContent = "Sede selezionata…";
         fetch(WEBAPP_URL + "?action=sede&loc=" + encodeURIComponent(locParam))
           .then(r => r.json())
           .then(data => {
@@ -171,7 +180,7 @@
                 (data.error || "sconosciuto"),
                 true
               );
-              sedeNameEl.textContent = "Sede: errore";
+              sedeNameEl.textContent = "Sede non disponibile";
               disableButtons(true);
               return;
             }
@@ -179,7 +188,8 @@
             const nome      = data.nomeSede || data.locationId;
             const indirizzo = data.indirizzo || "";
 
-            sedeNameEl.textContent    = "Sede: " + nome;
+            // Nome sede e indirizzo in due righe pulite
+            sedeNameEl.textContent    = nome;
             sedeAddressEl.textContent = indirizzo;
           })
           .catch(err => {
@@ -187,7 +197,7 @@
               "Errore rete nel recupero sede: " + err.message,
               true
             );
-            sedeNameEl.textContent = "Sede: errore rete";
+            sedeNameEl.textContent = "Sede non disponibile (errore rete)";
             disableButtons(true);
           });
       }
