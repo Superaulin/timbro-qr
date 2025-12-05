@@ -5,13 +5,80 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sedi – Timbro Presenze</title>
 
+  <!-- CSS comuni -->
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/tema-cliente.css">
+
+  <!-- Stili specifici per la pagina sedi -->
+  <style>
+    .sedi-card {
+      text-align: left;
+    }
+
+    .sedi-divider {
+      margin: 12px 0;
+      border: 0;
+      border-top: 1px solid #eeeeee;
+    }
+
+    .sedi-section-title {
+      font-size: 16px;
+      margin: 8px 0 4px;
+      color: var(--text-main);
+      font-weight: 600;
+    }
+
+    .sedi-list {
+      margin-top: 4px;
+    }
+
+    .sede-item {
+      padding: 7px 0 10px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .sede-item:last-child {
+      border-bottom: none;
+    }
+
+    .sede-nome {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .sede-address {
+      font-size: 12px;
+      color: var(--text-subtle);
+    }
+
+    .sede-distance {
+      font-size: 11px;
+      color: var(--text-subtle);
+      margin-top: 2px;
+    }
+
+    .sede-actions {
+      margin-top: 5px;
+    }
+
+    .sede-actions .login-button {
+      font-size: 13px;
+      padding: 6px 12px;
+      flex: 0 0 auto;
+    }
+
+    .sedi-note {
+      font-size: 11px;
+      color: var(--text-subtle);
+      margin-top: 10px;
+    }
+  </style>
 </head>
-<body class="page-sedi">
-  <div class="card card-sedi">
-    <header class="sedi-header">
-      <img src="img/logo.png" alt="Logo Aziendale" class="logo-sedi">
+<body>
+  <div class="card sedi-card">
+    <div class="sedi-header">
+      <img src="img/logo.png" alt="Logo aziendale" class="logo-sedi">
       <div class="sedi-header-text">
         <h1>Seleziona la sede</h1>
         <p>
@@ -19,161 +86,202 @@
           Puoi salvare la pagina tra i preferiti per usarla più velocemente.
         </p>
       </div>
-    </header>
+    </div>
 
     <hr class="sedi-divider">
 
-    <div id="sediContainer" class="sedi-list">
-      <p class="sedi-loading">Caricamento sedi in corso…</p>
+    <div id="sediContent">
+      <p>Caricamento sedi in corso…</p>
     </div>
+
+    <p class="sedi-note" id="sediNote"></p>
   </div>
 
   <script>
-    const WEBAPP_URL =
-      "https://script.google.com/macros/s/AKfycbxaiiuQovXIT44GjKBpPXMtMSDXAg51M1lCgi-fbFnGkBTqE5y4PnnaiBQC-HiYGpkC/exec";
+    // URL della WebApp – tienilo allineato con index.html
+    const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbxaiiuQovXIT44GjKBpPXMtMSDXAg51M1lCgi-fbFnGkBTqE5y4PnnaiBQC-HiYGpkC/exec";
 
-    const TIMBRO_PAGE = "index.html";
+    // raggio in km per considerare una sede "vicina"
+    const RAGGIO_KM = 20;
 
-    // ------------ utilità grouping -------------
-    function getGroupNameFromSede(sede) {
-      const regione   = (sede.regione  || "").trim();
-      const provincia = (sede.provincia || "").trim();
-      const comune    = (sede.comune   || "").trim();
+    const sediContentEl = document.getElementById("sediContent");
+    const sediNoteEl = document.getElementById("sediNote");
 
-      if (comune && provincia) return `${comune} (${provincia})`;
-      if (provincia && regione) return `${provincia} – ${regione}`;
-      if (provincia) return provincia;
-      if (regione) return regione;
-
-      // fallback vecchio: ultima parte dell'indirizzo
-      if (sede.indirizzo) {
-        const parts = sede.indirizzo.split(",");
-        return parts[parts.length - 1].trim() || "Altro";
-      }
-      return "Altro";
+    function setContent(html) {
+      sediContentEl.innerHTML = html;
     }
 
-    function renderSedi(sedi) {
-      const container = document.getElementById("sediContainer");
-      container.innerHTML = "";
+    function setNote(msg) {
+      sediNoteEl.textContent = msg || "";
+    }
 
-      if (!Array.isArray(sedi) || sedi.length === 0) {
-        container.innerHTML =
-          "<p>Nessuna sede configurata.</p>";
-        return;
+    function escapeHtml(str) {
+      return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function distanceKm(lat1, lon1, lat2, lon2) {
+      const R = 6371;
+      const toRad = deg => deg * Math.PI / 180;
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const a =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+        Math.sin(dLon / 2) ** 2;
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c;
+    }
+
+    function renderSedi(vicine, altre, haGps) {
+      let html = "";
+
+      if (vicine.length > 0) {
+        html += `<h2 class="sedi-section-title">Sedi vicino a te (entro ${RAGGIO_KM} km)</h2>`;
+        html += `<div class="sedi-list">`;
+        vicine.forEach(s => {
+          html += renderSedeItem(s, true);
+        });
+        html += `</div>`;
       }
 
-      // raggruppa per gruppo (es. comune/provincia)
-      const groups = {};
-      for (const sede of sedi) {
-        if (!sede || !sede.locationId) continue;
-        if (sede.attivo === false || sede.attivo === "FALSE") continue;
+      const titleAltre = vicine.length > 0 ? "Altre sedi" : "Tutte le sedi";
+      html += `<h2 class="sedi-section-title">${titleAltre}</h2>`;
+      html += `<div class="sedi-list">`;
+      altre.forEach(s => {
+        html += renderSedeItem(s, false);
+      });
+      html += `</div>`;
 
-        const groupName = getGroupNameFromSede(sede);
-        if (!groups[groupName]) groups[groupName] = [];
-        groups[groupName].push(sede);
+      setContent(html);
+
+      if (!haGps) {
+        setNote("GPS non disponibile: viene mostrato l'elenco completo delle sedi.");
+      } else if (vicine.length > 0) {
+        setNote("Sono mostrate prima le sedi entro " + RAGGIO_KM + " km dalla tua posizione.");
+      } else {
+        setNote("Nessuna sede rilevata entro " + RAGGIO_KM + " km. Vengono mostrate tutte le sedi.");
       }
+    }
 
-      const groupNames = Object.keys(groups).sort((a, b) =>
-        a.localeCompare(b, "it", { sensitivity: "base" })
-      );
+    function renderSedeItem(sede, isVicino) {
+      const nome = escapeHtml(sede.nomeSede || sede.locationId || "");
+      const indirizzo = escapeHtml(sede.indirizzo || "");
+      const distanza = typeof sede.distKm === "number"
+        ? sede.distKm.toFixed(1).replace(".", ",") + " km"
+        : null;
 
-      for (const gName of groupNames) {
-        const g = groups[gName];
+      return `
+        <div class="sede-item">
+          <div class="sede-nome">${nome}</div>
+          ${indirizzo ? `<div class="sede-address">${indirizzo}</div>` : ""}
+          ${distanza && isVicino ? `<div class="sede-distance">Distanza stimata: ${distanza}</div>` : ""}
+          <div class="sede-actions">
+            <button class="login-button btn-in"
+                    onclick="openTimbro('${encodeURIComponent(sede.locationId)}')">
+              Apri timbro
+            </button>
+          </div>
+        </div>
+      `;
+    }
 
-        const groupEl = document.createElement("section");
-        groupEl.className = "sedi-group";
+    // esposta in global per l'onclick
+    function openTimbro(locEncoded) {
+      window.location.href = "index.html?loc=" + locEncoded;
+    }
+    window.openTimbro = openTimbro;
 
-        const h = document.createElement("h2");
-        h.className = "sedi-group-title";
-        h.textContent = gName;
-        groupEl.appendChild(h);
+    function getPosition() {
+      if (!navigator.geolocation) {
+        return Promise.resolve({ ok: false, reason: "NO_GPS" });
+      }
+      return new Promise(resolve => {
+        navigator.geolocation.getCurrentPosition(
+          pos => {
+            resolve({
+              ok: true,
+              lat: pos.coords.latitude,
+              lon: pos.coords.longitude,
+              accuracy: pos.coords.accuracy
+            });
+          },
+          () => {
+            resolve({ ok: false, reason: "DENIED" });
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+          }
+        );
+      });
+    }
 
-        const listEl = document.createElement("div");
-        listEl.className = "sedi-group-list";
+    function initSedi(allSedi) {
+      // normalizza i numeri
+      const sedi = (allSedi || []).map(s => ({
+        ...s,
+        lat: typeof s.lat === "number" ? s.lat : parseFloat(s.lat),
+        lon: typeof s.lon === "number" ? s.lon : parseFloat(s.lon)
+      }));
 
-        g.forEach(sede => {
-          const card = document.createElement("article");
-          card.className = "sedi-card";
+      setContent("<p>Rilevamento posizione in corso…</p>");
 
-          const body = document.createElement("div");
-          body.className = "sedi-card-body";
+      getPosition().then(pos => {
+        if (!pos.ok) {
+          // niente GPS → elenco completo
+          renderSedi([], sedi, false);
+          return;
+        }
 
-          const nameEl = document.createElement("div");
-          nameEl.className = "sedi-name";
-          nameEl.textContent = sede.nomeSede || sede.locationId;
+        const vicine = [];
+        const altre = [];
 
-          // ===== NUOVA FORMATTAZIONE INDIRIZZO =====
-          const indirizzo = (sede.indirizzo || "").trim();
-          const citta     = (sede.citta || "").trim();     // campo "città" nel foglio
-          const cap       = (sede.cap || "").toString().trim();
-          const comune    = (sede.comune || "").trim();
-          const provincia = (sede.provincia || "").trim();
-          const regione   = (sede.regione || "").trim();
-
-          // Riga 2: Via Francia 120 · Guasticce
-          const addrLine1 = document.createElement("div");
-          addrLine1.className = "sedi-address";
-          const line1Parts = [];
-          if (indirizzo) line1Parts.push(indirizzo);
-          if (citta)     line1Parts.push(citta);
-          addrLine1.textContent = line1Parts.join(" · ");
-
-          // Riga 3: 57014 Collesalvetti
-          const addrLine2 = document.createElement("div");
-          addrLine2.className = "sedi-address";
-          const line2Parts = [];
-          if (cap)    line2Parts.push(cap);
-          if (comune) line2Parts.push(comune);
-          addrLine2.textContent = line2Parts.join(" ");
-
-          // Riga 4: Livorno · Toscana
-          const metaEl = document.createElement("div");
-          metaEl.className = "sedi-meta";
-          const metaParts = [];
-          if (provincia) metaParts.push(provincia);
-          if (regione)   metaParts.push(regione);
-          metaEl.textContent = metaParts.join(" · ");
-          // ===== FINE NUOVA FORMATTAZIONE =====
-
-          body.appendChild(nameEl);
-          if (addrLine1.textContent) body.appendChild(addrLine1);
-          if (addrLine2.textContent) body.appendChild(addrLine2);
-          if (metaEl.textContent)    body.appendChild(metaEl);
-
-          const btn = document.createElement("a");
-          btn.className = "sedi-btn";
-          btn.textContent = "Apri timbro";
-          btn.href = `${TIMBRO_PAGE}?loc=${encodeURIComponent(sede.locationId)}`;
-
-          card.appendChild(body);
-          card.appendChild(btn);
-
-          listEl.appendChild(card);
+        sedi.forEach(s => {
+          if (!isFinite(s.lat) || !isFinite(s.lon)) {
+            altre.push(s);
+            return;
+          }
+          const dist = distanceKm(pos.lat, pos.lon, s.lat, s.lon);
+          if (dist <= RAGGIO_KM) {
+            vicine.push({ ...s, distKm: dist });
+          } else {
+            altre.push(s);
+          }
         });
 
-        groupEl.appendChild(listEl);
-        container.appendChild(groupEl);
-      }
+        // ordina le vicine per distanza crescente
+        vicine.sort((a, b) => a.distKm - b.distKm);
+
+        renderSedi(vicine, altre, true);
+      });
     }
 
-    async function loadSedi() {
-      const container = document.getElementById("sediContainer");
-      try {
-        const res = await fetch(WEBAPP_URL + "?action=sedi");
-        const data = await res.json();
-        if (!res.ok || !data.ok) {
-          throw new Error(data && data.error ? data.error : "Risposta non valida");
-        }
-        renderSedi(data.sedi || []);
-      } catch (err) {
-        console.error("Errore caricamento sedi:", err);
-        container.innerHTML =
-          '<p class="sedi-error">Errore nel caricamento delle sedi.</p>';
-      }
-    }
+    // Caricamento iniziale sedi dal backend
+    (function loadSedi() {
+      setContent("<p>Caricamento sedi in corso…</p>");
+      setNote("");
 
-    document.addEventListener("DOMContentLoaded", loadSedi);
+      fetch(WEBAPP_URL + "?action=sedi")
+        .then(r => r.json())
+        .then(data => {
+          if (!data || !data.ok) {
+            setContent("<p>Errore nel caricamento delle sedi.</p>");
+            setNote("Verifica la connessione o riprova più tardi.");
+            return;
+          }
+          initSedi(data.sedi || []);
+        })
+        .catch(() => {
+          setContent("<p>Errore di connessione durante il caricamento delle sedi.</p>");
+          setNote("Controlla la connessione di rete e riprova.");
+        });
+    })();
   </script>
 </body>
 </html>
