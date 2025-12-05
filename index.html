@@ -19,7 +19,6 @@
       ← Torna alla lista sedi
     </a>
 
-    <!-- Titolo pagina -->
     <h2>Timbro Presenze</h2>
     <p class="subtitle">Registrazione ingresso / uscita</p>
 
@@ -28,7 +27,6 @@
     <p class="sede-indirizzo" id="sedeAddress"></p>
     <p class="mode-label" id="modeLabel">Modalità standard (scelta manuale)</p>
 
-    <!-- Form timbro -->
     <form id="timbroForm" autocomplete="off">
       <div class="input-group">
         <label for="employeeId">ID dipendente</label>
@@ -68,16 +66,13 @@
       </div>
     </form>
 
-    <!-- Messaggi esito -->
     <div class="status" id="statusMsg"></div>
 
-    <!-- Nota GPS -->
     <div class="gps-note">
       La posizione viene usata solo per verificare che il timbro avvenga in sede.<br>
       Se neghi il GPS, il timbro viene registrato ma marcato come anomalia.
     </div>
 
-    <!-- Info tecnica QR -->
     <div class="footer-tech">
       QR: <code>loc</code> / <code>mode</code> · v2 UI
     </div>
@@ -120,7 +115,6 @@
         statusEl.classList.add(isError ? "err" : "ok");
       }
 
-      // Blocco sicurezza se aperto in locale
       if (location.protocol === "file:") {
         setStatus(
           "La pagina è aperta in locale (file://).\n" +
@@ -131,7 +125,6 @@
         return;
       }
 
-      // applica modalità IN/OUT in base al QR
       function applyMode(mode) {
         currentMode = mode;
 
@@ -145,7 +138,8 @@
           modeLabelEl.innerHTML = 'Modalità QR: <span>Uscita attiva</span>';
           btnIn.style.display   = "none";
         } else {
-          modeLabelEl.textContent = "Modalità standard (scelta manuale)";
+          modeLabelEl.textContent =
+            "Modalità standard (scelta manuale)";
         }
       }
 
@@ -185,12 +179,40 @@
               return;
             }
             sedeLoaded = true;
-            const nome      = data.nomeSede || data.locationId;
-            const indirizzo = data.indirizzo || "";
 
-            // Nome sede e indirizzo in due righe pulite
-            sedeNameEl.textContent    = nome;
-            sedeAddressEl.textContent = indirizzo;
+            const nome      = data.nomeSede || data.locationId;
+            const indirizzo = (data.indirizzo || "").trim();
+            const cap       = (data.cap || "").toString().trim();
+            const citta     = (data.citta || "").trim();     // colonna "città" sullo sheet
+            const comune    = (data.comune || "").trim();
+            const provincia = (data.provincia || "").trim();
+            const regione   = (data.regione || "").trim();
+
+            // Prima riga: indirizzo · città
+            const line1Parts = [];
+            if (indirizzo) line1Parts.push(indirizzo);
+            if (citta)     line1Parts.push(citta);
+            const line1 = line1Parts.join(" · ");
+
+            // Seconda riga: CAP + comune
+            const line2Parts = [];
+            if (cap)    line2Parts.push(cap);
+            if (comune) line2Parts.push(comune);
+            const line2 = line2Parts.join(" ");
+
+            // Terza riga: provincia · regione
+            const line3Parts = [];
+            if (provincia) line3Parts.push(provincia);
+            if (regione)   line3Parts.push(regione);
+            const line3 = line3Parts.join(" · ");
+
+            const lines = [line1, line2, line3].filter(Boolean);
+
+            // Nome sede
+            sedeNameEl.textContent = nome;
+
+            // Indirizzo completo, multi-linea
+            sedeAddressEl.innerHTML = lines.join("<br>");
           })
           .catch(err => {
             setStatus(
