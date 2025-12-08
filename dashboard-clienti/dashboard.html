@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8" />
+    <title>Dashboard Cliente – Report Paghe</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="assets/css/dashboard.css" />
+</head>
+<body>
+<div class="layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <!-- Logo tenant -->
+            <img src="assets/img/logo-tenant.png" alt="Logo Cliente" />
+            <span class="sidebar-tenant-name">RAM Energy E&C</span>
+        </div>
+        <nav class="sidebar-nav">
+            <button class="nav-item active" data-view="report-paghe">
+                Report paghe
+            </button>
+            <button class="nav-item" data-view="presenze-giornaliere" disabled>
+                Presenze giornaliere (coming soon)
+            </button>
+            <button class="nav-item" data-view="anomalie" disabled>
+                Anomalie & allarmi (coming soon)
+            </button>
+        </nav>
+    </aside>
+
+    <!-- Main content -->
+    <div class="main">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <h1 class="header-title">Dashboard Cliente</h1>
+                <span class="header-subtitle">Report paghe – MVP</span>
+            </div>
+            <div class="header-right">
+                <span class="user-info">
+                    <span class="user-name">Mario Rossi</span>
+                    <span class="user-role">Admin Cliente</span>
+                </span>
+                <button class="btn btn-outline" id="btnLogout">Logout</button>
+            </div>
+        </header>
+
+        <!-- Content area -->
+        <main class="content">
+            <!-- VIEW: REPORT PAGHE -->
+            <section id="view-report-paghe" class="view active">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Report Paghe</h2>
+                        <p class="card-subtitle">
+                            Riepilogo ore e anomalie per dipendente su un periodo.
+                        </p>
+                    </div>
+                    <div class="card-body">
+                        <!-- FILTRI -->
+                        <div class="filters">
+                            <div class="filter-group">
+                                <label for="startDate">Periodo dal</label>
+                                <input type="date" id="startDate" />
+                            </div>
+                            <div class="filter-group">
+                                <label for="endDate">al</label>
+                                <input type="date" id="endDate" />
+                            </div>
+                            <div class="filter-group">
+                                <label for="locationSelect">Sede</label>
+                                <select id="locationSelect">
+                                    <option value="">Tutte</option>
+                                    <!-- opzionale: popolato da API in futuro -->
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label for="employeeSearch">Dipendente</label>
+                                <input
+                                    type="text"
+                                    id="employeeSearch"
+                                    placeholder="Cognome o codice..."
+                                />
+                            </div>
+                            <div class="filter-group filter-group-actions">
+                                <button class="btn btn-primary" id="btnGenerateReport">
+                                    Genera report
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- STATO / MESSAGGI -->
+                        <div id="reportStatus" class="report-status">
+                            <!-- messaggi di loading / errore -->
+                        </div>
+
+                        <!-- TABS: riepilogo / dettaglio -->
+                        <div class="tabs">
+                            <button
+                                class="tab-button active"
+                                data-tab="riepilogo"
+                                id="tabRiepilogo"
+                            >
+                                Riepilogo per dipendente
+                            </button>
+                            <button
+                                class="tab-button"
+                                data-tab="dettaglio"
+                                id="tabDettaglio"
+                            >
+                                Dettaglio per giorno
+                            </button>
+                        </div>
+
+                        <!-- CONTENUTO TABS -->
+                        <div class="tab-content active" id="tab-content-riepilogo">
+                            <div class="table-toolbar">
+                                <span id="riepilogoCount" class="table-count"></span>
+                                <div class="table-actions">
+                                    <button
+                                        class="btn btn-small"
+                                        id="btnExportRiepilogoCsv"
+                                    >
+                                        Export CSV (Riepilogo)
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="table-wrapper">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Cliente</th>
+                                            <th>Codice</th>
+                                            <th>Cognome</th>
+                                            <th>Nome</th>
+                                            <th>Matricola</th>
+                                            <th>Periodo dal</th>
+                                            <th>Periodo al</th>
+                                            <th>Sede prevalente</th>
+                                            <th>Giorni lav.</th>
+                                            <th>Giorni con anom.</th>
+                                            <th>Ore totali</th>
+                                            <th>Ore ordinarie</th>
+                                            <th>Ore oltre soglia</th>
+                                            <th>N. anomalie</th>
+                                            <th>Note</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="riepilogoTableBody">
+                                        <!-- righe generate via JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="tab-content" id="tab-content-dettaglio">
+                            <div class="table-toolbar">
+                                <span id="dettaglioCount" class="table-count"></span>
+                                <div class="table-actions">
+                                    <button
+                                        class="btn btn-small"
+                                        id="btnExportDettaglioCsv"
+                                    >
+                                        Export CSV (Dettaglio)
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="table-wrapper">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Cliente</th>
+                                            <th>Codice</th>
+                                            <th>Cognome</th>
+                                            <th>Nome</th>
+                                            <th>Matricola</th>
+                                            <th>Data</th>
+                                            <th>Giorno</th>
+                                            <th>Sede prevalente</th>
+                                            <th>Primo IN</th>
+                                            <th>Ultimo OUT</th>
+                                            <th>Ore lav.</th>
+                                            <th>Ore ordinarie</th>
+                                            <th>Ore oltre soglia</th>
+                                            <th>N. timbri</th>
+                                            <th>Anomalia</th>
+                                            <th>Tipi anomalia</th>
+                                            <th>Dettaglio</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="dettaglioTableBody">
+                                        <!-- righe generate via JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Placeholder per altre viste -->
+            <section id="view-presenze-giornaliere" class="view">
+                <div class="card muted">
+                    <div class="card-header">
+                        <h2>Presenze giornaliere</h2>
+                    </div>
+                    <div class="card-body">
+                        <p>Questa sezione verrà collegata dopo il Report Paghe.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="view-anomalie" class="view">
+                <div class="card muted">
+                    <div class="card-header">
+                        <h2>Anomalie & allarmi</h2>
+                    </div>
+                    <div class="card-body">
+                        <p>Workflow anomalie in fase 2.</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+</div>
+
+<script src="assets/js/api.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/reportPaghe.js"></script>
+</body>
+</html>
