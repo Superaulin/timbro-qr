@@ -1,8 +1,11 @@
 // assets/js/api.js
 
 // URL Web App Apps Script (già esistente per il sistema timbrature)
+//const API_BASE_URL =
+  //  "https://script.google.com/macros/s/AKfycbxaiiuQovXIT44GjKBpPXMtMSDXAg51M1lCgi-fbFnGkBTqE5y4PnnaiBQC-HiYGpkC/exec";
 const API_BASE_URL =
-    "https://script.google.com/macros/s/AKfycbxaiiuQovXIT44GjKBpPXMtMSDXAg51M1lCgi-fbFnGkBTqE5y4PnnaiBQC-HiYGpkC/exec";
+    (window.TIMBRO_CONFIG && window.TIMBRO_CONFIG.apiBaseUrl) ||
+    "https://script.google.com/macros/s/FAKE_URL_DI_DEFAULT/exec";
      
 /**
  * Chiamata JSON → Apps Script (POST)
