@@ -2,8 +2,8 @@
 
 // URL Web App Apps Script (già esistente per il sistema timbrature)
 const API_BASE_URL =
-    "https://script.google.com/macros/s/AKfycbw3UYl68d61ym-mPVrgh1QyphQaaWotOSgrczzNGRS3KD9euIpDg-nv60Ns06vRCfLx/exec";
-
+    "https://script.google.com/macros/s/AKfycbxaiiuQovXIT44GjKBpPXMtMSDXAg51M1lCgi-fbFnGkBTqE5y4PnnaiBQC-HiYGpkC/exec";
+     
 /**
  * Chiamata JSON → Apps Script (POST)
  * @param {string} action - azione (es. "getReportPaghe")
