@@ -19,13 +19,13 @@ async function callApi(action, payload) {
     };
 
     const res = await fetch(API_BASE_URL, {
-    method: "POST",
-    // niente JSON qui, altrimenti parte il preflight CORS
-    headers: {
-      "Content-Type": "text/plain;charset=utf-8",
-    },
-    body: JSON.stringify(body), // lato Apps Script facciamo JSON.parse(e.postData.contents)
-  });
+        method: "POST",
+        headers: {
+            // IMPORTANTISSIMO: niente application/json, sennò parte il preflight CORS
+            "Content-Type": "text/plain;charset=utf-8",
+        },
+        body: JSON.stringify(body),
+    });
 
     if (!res.ok) {
         throw new Error("Errore HTTP " + res.status);
