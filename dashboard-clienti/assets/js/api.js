@@ -1,0 +1,50 @@
+// assets/js/api.js
+
+// URL Web App Apps Script (già esistente per il sistema timbrature)
+const API_BASE_URL =
+    "https://script.google.com/macros/s/AKfycbw3UYl68d61ym-mPVrgh1QyphQaaWotOSgrczzNGRS3KD9euIpDg-nv60Ns06vRCfLx/exec";
+
+/**
+ * Chiamata JSON → Apps Script (POST)
+ * @param {string} action - azione (es. "getReportPaghe")
+ * @param {object} payload - parametri business
+ */
+async function callApi(action, payload) {
+    const body = {
+        action,
+        payload,
+    };
+
+    const res = await fetch(API_BASE_URL, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+    });
+
+    if (!res.ok) {
+        throw new Error("Errore HTTP " + res.status);
+    }
+
+    const data = await res.json();
+    if (!data.success) {
+        throw new Error(data.message || "Errore generico API");
+    }
+
+    return data;
+}
+
+/**
+ * Costruisce URL GET per export CSV
+ */
+function buildExportUrl(view, filters) {
+    const params = new URLSearchParams();
+    params.set("action", "exportReportPagheCsv");
+    params.set("view", view);
+    if (filters.startDate) params.set("startDate", filters.startDate);
+    if (filters.endDate) params.set("endDate", filters.endDate);
+    if (filters.locationId) params.set("locationId", filters.locationId);
+    if (filters.employeeQuery) params.set("employeeQuery", filters.employeeQuery);
+    return `${API_BASE_URL}?${params.toString()}`;
+}
