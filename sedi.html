@@ -1,350 +1,350 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sedi – Timbro Presenze</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sedi – Timbro Presenze</title>
 
-<link rel="stylesheet" href="css/base.css">
-<link rel="stylesheet" href="css/tema-cliente.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/tema-cliente.css">
 
-<!-- Mini CSS aggiuntivo solo per i loghi host nelle card -->
-<style>
-.sedi-card-body-main {
-display: flex;
-align-items: flex-start;
-gap: 8px;
-}
+  <!-- Mini CSS aggiuntivo solo per i loghi host nelle card -->
+  <style>
+    .sedi-card-body-main {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
 
-.sedi-host-logo {
-      width: 75px;     /* proporzionato alla tipografia della card */
-      height: 75px;
-object-fit: contain;
-flex-shrink: 0;
-}
+    .sedi-host-logo {
+      width: 32px;     /* proporzionato alla tipografia della card */
+      height: 32px;
+      object-fit: contain;
+      flex-shrink: 0;
+    }
 
-.sedi-text-block {
-flex: 1;
-min-width: 0;
-}
-</style>
+    .sedi-text-block {
+      flex: 1;
+      min-width: 0;
+    }
+  </style>
 </head>
 <body class="page-sedi">
-<div class="card card-sedi">
-<header class="sedi-header">
-<img src="img/logo.png" alt="Logo Aziendale" class="logo-sedi">
-<div class="sedi-header-text">
-<h1>Seleziona la sede</h1>
-<p>
-Scegli la sede o il cantiere in cui ti trovi per aprire la pagina di timbratura.
-Puoi salvare la pagina tra i preferiti per usarla più velocemente.
-</p>
-</div>
-</header>
+  <div class="card card-sedi">
+    <header class="sedi-header">
+      <img src="img/logo.png" alt="Logo Aziendale" class="logo-sedi">
+      <div class="sedi-header-text">
+        <h1>Seleziona la sede</h1>
+        <p>
+          Scegli la sede o il cantiere in cui ti trovi per aprire la pagina di timbratura.
+          Puoi salvare la pagina tra i preferiti per usarla più velocemente.
+        </p>
+      </div>
+    </header>
 
-<hr class="sedi-divider">
+    <hr class="sedi-divider">
 
-<div id="sediContainer" class="sedi-list">
-<p class="sedi-loading">Caricamento sedi in corso…</p>
-</div>
+    <div id="sediContainer" class="sedi-list">
+      <p class="sedi-loading">Caricamento sedi in corso…</p>
+    </div>
 
-<!-- Nota sul comportamento della geolocalizzazione -->
-<p class="sedi-note" id="geoNote"></p>
-</div>
+    <!-- Nota sul comportamento della geolocalizzazione -->
+    <p class="sedi-note" id="geoNote"></p>
+  </div>
 
-<script>
-const WEBAPP_URL =
-"https://script.google.com/macros/s/AKfycbxaiiuQovXIT44GjKBpPXMtMSDXAg51M1lCgi-fbFnGkBTqE5y4PnnaiBQC-HiYGpkC/exec";
+  <script>
+    const WEBAPP_URL =
+      "https://script.google.com/macros/s/AKfycbxaiiuQovXIT44GjKBpPXMtMSDXAg51M1lCgi-fbFnGkBTqE5y4PnnaiBQC-HiYGpkC/exec";
 
-const TIMBRO_PAGE = "index.html";
+    const TIMBRO_PAGE = "index.html";
 
-// Raggio massimo in km per considerare una sede "vicina"
-const RAGGIO_KM = 2;
+    // Raggio massimo in km per considerare una sede "vicina"
+    const RAGGIO_KM = 2;
 
-function setGeoNote(msg) {
-const el = document.getElementById("geoNote");
-if (el) el.textContent = msg || "";
-}
+    function setGeoNote(msg) {
+      const el = document.getElementById("geoNote");
+      if (el) el.textContent = msg || "";
+    }
 
-// ------------ utilità grouping -------------
-function getGroupNameFromSede(sede) {
-const regione   = (sede.regione  || "").trim();
-const provincia = (sede.provincia || "").trim();
-const comune    = (sede.comune   || "").trim();
+    // ------------ utilità grouping -------------
+    function getGroupNameFromSede(sede) {
+      const regione   = (sede.regione  || "").trim();
+      const provincia = (sede.provincia || "").trim();
+      const comune    = (sede.comune   || "").trim();
 
-if (comune && provincia) return `${comune} (${provincia})`;
-if (provincia && regione) return `${provincia} – ${regione}`;
-if (provincia) return provincia;
-if (regione) return regione;
+      if (comune && provincia) return `${comune} (${provincia})`;
+      if (provincia && regione) return `${provincia} – ${regione}`;
+      if (provincia) return provincia;
+      if (regione) return regione;
 
-// fallback vecchio: ultima parte dell'indirizzo
-if (sede.indirizzo) {
-const parts = sede.indirizzo.split(",");
-return parts[parts.length - 1].trim() || "Altro";
-}
-return "Altro";
-}
+      // fallback vecchio: ultima parte dell'indirizzo
+      if (sede.indirizzo) {
+        const parts = sede.indirizzo.split(",");
+        return parts[parts.length - 1].trim() || "Altro";
+      }
+      return "Altro";
+    }
 
-function renderSedi(sedi) {
-const container = document.getElementById("sediContainer");
-container.innerHTML = "";
+    function renderSedi(sedi) {
+      const container = document.getElementById("sediContainer");
+      container.innerHTML = "";
 
-if (!Array.isArray(sedi) || sedi.length === 0) {
-container.innerHTML =
-"<p>Nessuna sede configurata.</p>";
-return;
-}
+      if (!Array.isArray(sedi) || sedi.length === 0) {
+        container.innerHTML =
+          "<p>Nessuna sede configurata.</p>";
+        return;
+      }
 
-// raggruppa per gruppo (es. comune/provincia)
-const groups = {};
-for (const sede of sedi) {
-if (!sede || !sede.locationId) continue;
-if (sede.attivo === false || sede.attivo === "FALSE") continue;
+      // raggruppa per gruppo (es. comune/provincia)
+      const groups = {};
+      for (const sede of sedi) {
+        if (!sede || !sede.locationId) continue;
+        if (sede.attivo === false || sede.attivo === "FALSE") continue;
 
-const groupName = getGroupNameFromSede(sede);
-if (!groups[groupName]) groups[groupName] = [];
-groups[groupName].push(sede);
-}
+        const groupName = getGroupNameFromSede(sede);
+        if (!groups[groupName]) groups[groupName] = [];
+        groups[groupName].push(sede);
+      }
 
-const groupNames = Object.keys(groups).sort((a, b) =>
-a.localeCompare(b, "it", { sensitivity: "base" })
-);
+      const groupNames = Object.keys(groups).sort((a, b) =>
+        a.localeCompare(b, "it", { sensitivity: "base" })
+      );
 
-for (const gName of groupNames) {
-const g = groups[gName];
+      for (const gName of groupNames) {
+        const g = groups[gName];
 
-const groupEl = document.createElement("section");
-groupEl.className = "sedi-group";
+        const groupEl = document.createElement("section");
+        groupEl.className = "sedi-group";
 
-const h = document.createElement("h2");
-h.className = "sedi-group-title";
-h.textContent = gName;
-groupEl.appendChild(h);
+        const h = document.createElement("h2");
+        h.className = "sedi-group-title";
+        h.textContent = gName;
+        groupEl.appendChild(h);
 
-const listEl = document.createElement("div");
-listEl.className = "sedi-group-list";
+        const listEl = document.createElement("div");
+        listEl.className = "sedi-group-list";
 
-g.forEach(sede => {
-const card = document.createElement("article");
-card.className = "sedi-card";
+        g.forEach(sede => {
+          const card = document.createElement("article");
+          card.className = "sedi-card";
 
-const body = document.createElement("div");
-body.className = "sedi-card-body";
+          const body = document.createElement("div");
+          body.className = "sedi-card-body";
 
-// --- wrapper principale testo + logo host ---
-const bodyMain = document.createElement("div");
-bodyMain.className = "sedi-card-body-main";
+          // --- wrapper principale testo + logo host ---
+          const bodyMain = document.createElement("div");
+          bodyMain.className = "sedi-card-body-main";
 
-// --- logo host (azienda ospitante, es. B-Cube, Solvay, ecc.) ---
-const rawLogo = (sede.logoHost || "").trim();
-let logoSrc = "";
+          // --- logo host (azienda ospitante, es. B-Cube, Solvay, ecc.) ---
+          const rawLogo = (sede.logoHost || "").trim();
+          let logoSrc = "";
 
-if (rawLogo) {
-// Se è URL assoluto o path già completo, usalo così com'è
-if (/^https?:\/\//i.test(rawLogo) ||
-rawLogo.startsWith("img/") ||
-rawLogo.startsWith("./") ||
-rawLogo.startsWith("../")) {
-logoSrc = rawLogo;
-} else {
-// altrimenti assumiamo slug e punto a img/host/<slug>.png
-const slug = rawLogo.replace(/\.[a-z0-9]+$/i, ""); // togli eventuale estensione
-logoSrc = "img/host/" + slug + ".png";
-}
-}
+          if (rawLogo) {
+            // Se è URL assoluto o path già completo, usalo così com'è
+            if (/^https?:\/\//i.test(rawLogo) ||
+                rawLogo.startsWith("img/") ||
+                rawLogo.startsWith("./") ||
+                rawLogo.startsWith("../")) {
+              logoSrc = rawLogo;
+            } else {
+              // altrimenti assumiamo slug e punto a img/host/<slug>.png
+              const slug = rawLogo.replace(/\.[a-z0-9]+$/i, ""); // togli eventuale estensione
+              logoSrc = "img/host/" + slug + ".png";
+            }
+          }
 
-if (logoSrc) {
-const logoImg = document.createElement("img");
-logoImg.className = "sedi-host-logo";
-logoImg.src = logoSrc;
-logoImg.alt = rawLogo || "";
-bodyMain.appendChild(logoImg);
-}
+          if (logoSrc) {
+            const logoImg = document.createElement("img");
+            logoImg.className = "sedi-host-logo";
+            logoImg.src = logoSrc;
+            logoImg.alt = rawLogo || "";
+            bodyMain.appendChild(logoImg);
+          }
 
-// --- blocco testo ---
-const textBlock = document.createElement("div");
-textBlock.className = "sedi-text-block";
+          // --- blocco testo ---
+          const textBlock = document.createElement("div");
+          textBlock.className = "sedi-text-block";
 
-const nameEl = document.createElement("div");
-nameEl.className = "sedi-name";
-nameEl.textContent = sede.nomeSede || sede.locationId;
+          const nameEl = document.createElement("div");
+          nameEl.className = "sedi-name";
+          nameEl.textContent = sede.nomeSede || sede.locationId;
 
-// ===== FORMATTAZIONE INDIRIZZO =====
-const indirizzo = (sede.indirizzo || "").trim();
-const citta     = (sede.citta || "").trim();
-const cap       = (sede.cap || "").toString().trim();
-const comune    = (sede.comune || "").trim();
-const provincia = (sede.provincia || "").trim();
-const regione   = (sede.regione || "").trim();
+          // ===== FORMATTAZIONE INDIRIZZO =====
+          const indirizzo = (sede.indirizzo || "").trim();
+          const citta     = (sede.citta || "").trim();
+          const cap       = (sede.cap || "").toString().trim();
+          const comune    = (sede.comune || "").trim();
+          const provincia = (sede.provincia || "").trim();
+          const regione   = (sede.regione || "").trim();
 
-// Riga 2: Via Francia 120 · Guasticce
-const addrLine1 = document.createElement("div");
-addrLine1.className = "sedi-address";
-const line1Parts = [];
-if (indirizzo) line1Parts.push(indirizzo);
-if (citta)     line1Parts.push(citta);
-addrLine1.textContent = line1Parts.join(" · ");
+          // Riga 2: Via Francia 120 · Guasticce
+          const addrLine1 = document.createElement("div");
+          addrLine1.className = "sedi-address";
+          const line1Parts = [];
+          if (indirizzo) line1Parts.push(indirizzo);
+          if (citta)     line1Parts.push(citta);
+          addrLine1.textContent = line1Parts.join(" · ");
 
-// Riga 3: 57014 Collesalvetti
-const addrLine2 = document.createElement("div");
-addrLine2.className = "sedi-address";
-const line2Parts = [];
-if (cap)    line2Parts.push(cap);
-if (comune) line2Parts.push(comune);
-addrLine2.textContent = line2Parts.join(" ");
+          // Riga 3: 57014 Collesalvetti
+          const addrLine2 = document.createElement("div");
+          addrLine2.className = "sedi-address";
+          const line2Parts = [];
+          if (cap)    line2Parts.push(cap);
+          if (comune) line2Parts.push(comune);
+          addrLine2.textContent = line2Parts.join(" ");
 
-// Riga 4: Livorno · Toscana
-const metaEl = document.createElement("div");
-metaEl.className = "sedi-meta";
-const metaParts = [];
-if (provincia) metaParts.push(provincia);
-if (regione)   metaParts.push(regione);
-metaEl.textContent = metaParts.join(" · ");
-// ===== FINE FORMATTAZIONE =====
+          // Riga 4: Livorno · Toscana
+          const metaEl = document.createElement("div");
+          metaEl.className = "sedi-meta";
+          const metaParts = [];
+          if (provincia) metaParts.push(provincia);
+          if (regione)   metaParts.push(regione);
+          metaEl.textContent = metaParts.join(" · ");
+          // ===== FINE FORMATTAZIONE =====
 
-textBlock.appendChild(nameEl);
-if (addrLine1.textContent) textBlock.appendChild(addrLine1);
-if (addrLine2.textContent) textBlock.appendChild(addrLine2);
-if (metaEl.textContent)    textBlock.appendChild(metaEl);
+          textBlock.appendChild(nameEl);
+          if (addrLine1.textContent) textBlock.appendChild(addrLine1);
+          if (addrLine2.textContent) textBlock.appendChild(addrLine2);
+          if (metaEl.textContent)    textBlock.appendChild(metaEl);
 
-bodyMain.appendChild(textBlock);
-body.appendChild(bodyMain);
+          bodyMain.appendChild(textBlock);
+          body.appendChild(bodyMain);
 
-const btn = document.createElement("a");
-btn.className = "sedi-btn";
-btn.textContent = "Apri timbro";
-btn.href = `${TIMBRO_PAGE}?loc=${encodeURIComponent(sede.locationId)}`;
+          const btn = document.createElement("a");
+          btn.className = "sedi-btn";
+          btn.textContent = "Apri timbro";
+          btn.href = `${TIMBRO_PAGE}?loc=${encodeURIComponent(sede.locationId)}`;
 
-card.appendChild(body);
-card.appendChild(btn);
+          card.appendChild(body);
+          card.appendChild(btn);
 
-listEl.appendChild(card);
-});
+          listEl.appendChild(card);
+        });
 
-groupEl.appendChild(listEl);
-container.appendChild(groupEl);
-}
-}
+        groupEl.appendChild(listEl);
+        container.appendChild(groupEl);
+      }
+    }
 
-// --------- Geolocalizzazione & filtro raggio ----------
+    // --------- Geolocalizzazione & filtro raggio ----------
 
-function distanceKm(lat1, lon1, lat2, lon2) {
-const R = 6371; // km
-const toRad = deg => deg * Math.PI / 180;
-const dLat = toRad(lat2 - lat1);
-const dLon = toRad(lon2 - lon1);
-const a =
-Math.sin(dLat / 2) ** 2 +
-Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-Math.sin(dLon / 2) ** 2;
-const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-return R * c;
-}
+    function distanceKm(lat1, lon1, lat2, lon2) {
+      const R = 6371; // km
+      const toRad = deg => deg * Math.PI / 180;
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const a =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+        Math.sin(dLon / 2) ** 2;
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c;
+    }
 
-function getPosition() {
-if (!navigator.geolocation) {
-return Promise.resolve({ ok: false, reason: "NO_GPS" });
-}
-return new Promise(resolve => {
-navigator.geolocation.getCurrentPosition(
-pos => {
-resolve({
-ok: true,
-lat: pos.coords.latitude,
-lon: pos.coords.longitude,
-accuracy: pos.coords.accuracy
-});
-},
-err => {
-let reason = "ERROR";
-if (err && err.code === 1) reason = "DENIED"; // permesso negato
-resolve({ ok: false, reason });
-},
-{
-enableHighAccuracy: true,
-timeout: 10000,
-maximumAge: 0
-}
-);
-});
-}
+    function getPosition() {
+      if (!navigator.geolocation) {
+        return Promise.resolve({ ok: false, reason: "NO_GPS" });
+      }
+      return new Promise(resolve => {
+        navigator.geolocation.getCurrentPosition(
+          pos => {
+            resolve({
+              ok: true,
+              lat: pos.coords.latitude,
+              lon: pos.coords.longitude,
+              accuracy: pos.coords.accuracy
+            });
+          },
+          err => {
+            let reason = "ERROR";
+            if (err && err.code === 1) reason = "DENIED"; // permesso negato
+            resolve({ ok: false, reason });
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+          }
+        );
+      });
+    }
 
-async function applyGeoFilterAndRender(allSedi) {
-setGeoNote("");
+    async function applyGeoFilterAndRender(allSedi) {
+      setGeoNote("");
 
-// Normalizza lat/lon dove presenti
-const sedi = (allSedi || []).map(s => ({
-...s,
-lat: s.lat !== undefined ? parseFloat(s.lat) : NaN,
-lon: s.lon !== undefined ? parseFloat(s.lon) : NaN
-}));
+      // Normalizza lat/lon dove presenti
+      const sedi = (allSedi || []).map(s => ({
+        ...s,
+        lat: s.lat !== undefined ? parseFloat(s.lat) : NaN,
+        lon: s.lon !== undefined ? parseFloat(s.lon) : NaN
+      }));
 
-const pos = await getPosition();
+      const pos = await getPosition();
 
-if (!pos.ok) {
-// niente GPS -> mostro tutto
-renderSedi(sedi);
-if (pos.reason === "DENIED") {
-setGeoNote("GPS negato: vengono mostrate tutte le sedi.");
-} else if (pos.reason === "NO_GPS") {
-setGeoNote("Dispositivo senza geolocalizzazione: vengono mostrate tutte le sedi.");
-} else {
-setGeoNote("Impossibile ottenere la posizione: vengono mostrate tutte le sedi.");
-}
-return;
-}
+      if (!pos.ok) {
+        // niente GPS -> mostro tutto
+        renderSedi(sedi);
+        if (pos.reason === "DENIED") {
+          setGeoNote("GPS negato: vengono mostrate tutte le sedi.");
+        } else if (pos.reason === "NO_GPS") {
+          setGeoNote("Dispositivo senza geolocalizzazione: vengono mostrate tutte le sedi.");
+        } else {
+          setGeoNote("Impossibile ottenere la posizione: vengono mostrate tutte le sedi.");
+        }
+        return;
+      }
 
-const vicine = [];
-const altre  = [];
+      const vicine = [];
+      const altre  = [];
 
-sedi.forEach(s => {
-if (!isFinite(s.lat) || !isFinite(s.lon)) {
-altre.push(s);
-return;
-}
-const dist = distanceKm(pos.lat, pos.lon, s.lat, s.lon);
-if (dist <= RAGGIO_KM) {
-vicine.push({ ...s, distKm: dist });
-} else {
-altre.push(s);
-}
-});
+      sedi.forEach(s => {
+        if (!isFinite(s.lat) || !isFinite(s.lon)) {
+          altre.push(s);
+          return;
+        }
+        const dist = distanceKm(pos.lat, pos.lon, s.lat, s.lon);
+        if (dist <= RAGGIO_KM) {
+          vicine.push({ ...s, distKm: dist });
+        } else {
+          altre.push(s);
+        }
+      });
 
-if (vicine.length > 0) {
-vicine.sort((a, b) => a.distKm - b.distKm);
-renderSedi(vicine);
-setGeoNote(`Mostrate le sedi entro ${RAGGIO_KM} km dalla tua posizione.`);
-} else {
-renderSedi(sedi);
-setGeoNote(`Nessuna sede nel raggio di ${RAGGIO_KM} km. Mostrate tutte le sedi.`);
-}
-}
+      if (vicine.length > 0) {
+        vicine.sort((a, b) => a.distKm - b.distKm);
+        renderSedi(vicine);
+        setGeoNote(`Mostrate le sedi entro ${RAGGIO_KM} km dalla tua posizione.`);
+      } else {
+        renderSedi(sedi);
+        setGeoNote(`Nessuna sede nel raggio di ${RAGGIO_KM} km. Mostrate tutte le sedi.`);
+      }
+    }
 
-// --------- Caricamento iniziale ----------
+    // --------- Caricamento iniziale ----------
 
-async function loadSedi() {
-const container = document.getElementById("sediContainer");
-container.innerHTML = '<p class="sedi-loading">Caricamento sedi in corso…</p>';
-setGeoNote("");
+    async function loadSedi() {
+      const container = document.getElementById("sediContainer");
+      container.innerHTML = '<p class="sedi-loading">Caricamento sedi in corso…</p>';
+      setGeoNote("");
 
-try {
-const res = await fetch(WEBAPP_URL + "?action=sedi");
-const data = await res.json();
-if (!res.ok || !data.ok) {
-throw new Error(data && data.error ? data.error : "Risposta non valida");
-}
+      try {
+        const res = await fetch(WEBAPP_URL + "?action=sedi");
+        const data = await res.json();
+        if (!res.ok || !data.ok) {
+          throw new Error(data && data.error ? data.error : "Risposta non valida");
+        }
 
-const sedi = data.sedi || [];
-await applyGeoFilterAndRender(sedi);
-} catch (err) {
-console.error("Errore caricamento sedi:", err);
-container.innerHTML =
-'<p class="sedi-error">Errore nel caricamento delle sedi.</p>';
-setGeoNote("Controlla la connessione di rete e riprova.");
-}
-}
+        const sedi = data.sedi || [];
+        await applyGeoFilterAndRender(sedi);
+      } catch (err) {
+        console.error("Errore caricamento sedi:", err);
+        container.innerHTML =
+          '<p class="sedi-error">Errore nel caricamento delle sedi.</p>';
+        setGeoNote("Controlla la connessione di rete e riprova.");
+      }
+    }
 
-document.addEventListener("DOMContentLoaded", loadSedi);
-</script>
+    document.addEventListener("DOMContentLoaded", loadSedi);
+  </script>
 </body>
 </html>
