@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Timbro Presenze</title>
 
+  <script src="config.js"></script>
+  
   <!-- CSS di base + tema cliente -->
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/tema-cliente.css">
@@ -81,7 +83,8 @@
   <script>
     // URL WebApp – la stessa usata ovunque
     const WEBAPP_URL =
-      "https://script.google.com/macros/s/AKfycbxaiiuQovXIT44GjKBpPXMtMSDXAg51M1lCgi-fbFnGkBTqE5y4PnnaiBQC-HiYGpkC/exec";
+  (window.TIMBRO_CONFIG && window.TIMBRO_CONFIG.apiBaseUrl) ||
+  "https://script.google.com/macros/s/AKfycbxaiiuQovXIT44GjKBpPXMtMSDXAg51M1lCgi-fbFnGkBTqE5y4PnnaiBQC-HiYGpkC/exec";
 
     document.addEventListener("DOMContentLoaded", () => {
       const params    = new URLSearchParams(window.location.search);
