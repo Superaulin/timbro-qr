@@ -377,24 +377,8 @@ input:focus {
   background: #fafafa;
 }
 
-/* corpo della card sedi: logo + testi affiancati */
 .sedi-card-body {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-}
-
-/* contenitore testi (nome, indirizzo, meta) */
-.sedi-card-text {
   flex: 1;
-}
-
-/* logo host nella scheda sede */
-.sedi-host-logo {
-  width: auto;
-  height: 32px;        /* altezza fissa, si ridimensiona in proporzione */
-  object-fit: contain; /* mantiene proporzioni */
-  flex-shrink: 0;
 }
 
 .sedi-name {
