@@ -7,27 +7,6 @@
 
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/tema-cliente.css">
-
-  <!-- Mini CSS aggiuntivo solo per i loghi host nelle card -->
-  <style>
-    .sedi-card-body-main {
-      display: flex;
-      align-items: flex-start;
-      gap: 8px;
-    }
-
-    .sedi-host-logo {
-      width: 75px;     /* proporzionato alla tipografia della card */
-      height: 75px;
-      object-fit: contain;
-      flex-shrink: 0;
-    }
-
-    .sedi-text-block {
-      flex: 1;
-      min-width: 0;
-    }
-  </style>
 </head>
 <body class="page-sedi">
   <div class="card card-sedi">
@@ -131,40 +110,6 @@
           const body = document.createElement("div");
           body.className = "sedi-card-body";
 
-          // --- wrapper principale testo + logo host ---
-          const bodyMain = document.createElement("div");
-          bodyMain.className = "sedi-card-body-main";
-
-          // --- logo host (azienda ospitante, es. B-Cube, Solvay, ecc.) ---
-          const rawLogo = (sede.logoHost || "").trim();
-          let logoSrc = "";
-
-          if (rawLogo) {
-            // Se è URL assoluto o path già completo, usalo così com'è
-            if (/^https?:\/\//i.test(rawLogo) ||
-                rawLogo.startsWith("img/") ||
-                rawLogo.startsWith("./") ||
-                rawLogo.startsWith("../")) {
-              logoSrc = rawLogo;
-            } else {
-              // altrimenti assumiamo slug e punto a img/host/<slug>.png
-              const slug = rawLogo.replace(/\.[a-z0-9]+$/i, ""); // togli eventuale estensione
-              logoSrc = "img/host/" + slug + ".png";
-            }
-          }
-
-          if (logoSrc) {
-            const logoImg = document.createElement("img");
-            logoImg.className = "sedi-host-logo";
-            logoImg.src = logoSrc;
-            logoImg.alt = rawLogo || "";
-            bodyMain.appendChild(logoImg);
-          }
-
-          // --- blocco testo ---
-          const textBlock = document.createElement("div");
-          textBlock.className = "sedi-text-block";
-
           const nameEl = document.createElement("div");
           nameEl.className = "sedi-name";
           nameEl.textContent = sede.nomeSede || sede.locationId;
@@ -202,13 +147,10 @@
           metaEl.textContent = metaParts.join(" · ");
           // ===== FINE FORMATTAZIONE =====
 
-          textBlock.appendChild(nameEl);
-          if (addrLine1.textContent) textBlock.appendChild(addrLine1);
-          if (addrLine2.textContent) textBlock.appendChild(addrLine2);
-          if (metaEl.textContent)    textBlock.appendChild(metaEl);
-
-          bodyMain.appendChild(textBlock);
-          body.appendChild(bodyMain);
+          body.appendChild(nameEl);
+          if (addrLine1.textContent) body.appendChild(addrLine1);
+          if (addrLine2.textContent) body.appendChild(addrLine2);
+          if (metaEl.textContent)    body.appendChild(metaEl);
 
           const btn = document.createElement("a");
           btn.className = "sedi-btn";
